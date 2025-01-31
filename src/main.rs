@@ -11,23 +11,23 @@ use std::io::Write;
 fn main() {
     let mut stdout = stdout();
 
-
-    enable_raw_mode().unwrap();
-
-    stdout.execute(Clear(ClearType::All)).unwrap();
-    let (cols, rows) = crossterm::terminal::size().unwrap();
-    let x = cols / 2 - 7;
-    let y = rows / 2;
-
-    let word_list = "Hello World";
+    let word_list = "Hello World i love you";
     let words = word_list.split_whitespace().collect::<Vec<&str>>();
     let mut position = 0;
+    let mut jump_position = 0;
     let mut word_selected = 0;
-    let mut right_letters = Vec::<char>::new();
+
+    enable_raw_mode().unwrap();
+    stdout.execute(Clear(ClearType::All)).unwrap();
+    let (cols, rows) = crossterm::terminal::size().unwrap();
+    let x = cols / 2 - (word_list.chars().count() / 2) as u16;
+    let y = rows / 2;
 
     stdout.execute(MoveTo(x, y)).unwrap();
     stdout.execute(SetForegroundColor(Color::Grey)).unwrap();
-    print!("{}", word_list);
+    words.iter().for_each(|word| {
+        print!("{} ", word);
+    });
     stdout.flush().unwrap();
     stdout.execute(MoveTo(x, y)).unwrap();
 
@@ -39,10 +39,19 @@ fn main() {
                 }
                 KeyCode::Char(c) => {
                     if c == ' ' {
-                        if word_selected == words.len() {
+                        if word_selected == words.len() - 1 {
                             break;
                         }
-                        position = words.get(word_selected).unwrap().chars().count();
+                        if jump_position + 1 == position {
+                            continue;
+                        }
+                        jump_position = words
+                            .iter()
+                            .take(word_selected + 1)
+                            .map(|word| word.chars().count() + 1)
+                            .sum::<usize>()
+                            - 1;
+                        position = jump_position;
                         stdout.execute(MoveTo(x + position as u16, y)).unwrap();
                         word_selected += 1;
                     }
@@ -68,4 +77,3 @@ fn main() {
     stdout.flush().unwrap();
     disable_raw_mode().unwrap();
 }
-
