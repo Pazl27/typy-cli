@@ -1,3 +1,4 @@
+use crossterm::event::KeyModifiers;
 use crossterm::{
     cursor::MoveTo,
     event::{read, Event, KeyCode, KeyEvent},
@@ -11,7 +12,7 @@ use std::io::Write;
 fn main() {
     let mut stdout = stdout();
 
-    let word_list = "Hello World i love you";
+    let word_list = "Hello World I love you";
     let words = word_list.split_whitespace().collect::<Vec<&str>>();
     let mut position = 0;
     let mut jump_position = 0;
@@ -32,9 +33,15 @@ fn main() {
     stdout.execute(MoveTo(x, y)).unwrap();
 
     loop {
-        if let Ok(Event::Key(KeyEvent { code, .. })) = read() {
+        if let Ok(Event::Key(KeyEvent {
+            code, modifiers, ..
+        })) = read()
+        {
             match code {
                 KeyCode::Esc => {
+                    break;
+                }
+                KeyCode::Char('c') if modifiers.contains(KeyModifiers::CONTROL) => {
                     break;
                 }
                 KeyCode::Char(c) => {
@@ -42,7 +49,7 @@ fn main() {
                         if word_selected == words.len() - 1 {
                             break;
                         }
-                        if jump_position + 1 == position {
+                        if jump_position + 1 == position && jump_position != 0 {
                             continue;
                         }
                         jump_position = words
@@ -63,6 +70,9 @@ fn main() {
                         stdout.execute(SetForegroundColor(Color::Red)).unwrap();
                         stdout.execute(MoveTo(x + position as u16, y)).unwrap();
                         print!("{}", word_list.chars().nth(position).unwrap());
+                    }
+                    if word_list.chars().nth(position).unwrap() == ' ' && c != ' ' {
+                        word_selected += 1;
                     }
                     stdout.flush().unwrap();
                     position += 1;
