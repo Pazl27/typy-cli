@@ -82,8 +82,9 @@ fn main() {
         }
     }
 
-    stdout.execute(ResetColor).unwrap();
-    stdout.execute(Clear(ClearType::All)).unwrap();
-    stdout.flush().unwrap();
     disable_raw_mode().unwrap();
+    stdout.execute(ResetColor).unwrap(); 
+    stdout.execute(Clear(ClearType::All)).unwrap(); 
+    stdout.execute(MoveTo(0, 0)).unwrap(); 
+    stdout.flush().unwrap();
 }
