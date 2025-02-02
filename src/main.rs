@@ -1,6 +1,7 @@
-use clap::{App, Arg};
-
 mod terminal;
+mod word_provider;
+
+use clap::{App, Arg};
 
 fn main() {
     

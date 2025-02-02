@@ -9,6 +9,8 @@ use crossterm::{
 use std::io::stdout;
 use std::io::Write;
 
+use crate::word_provider;
+
 struct Game<'a> {
     list: Vec<&'a str>,
     player_position: i32,
@@ -27,11 +29,11 @@ impl<'a> Game<'a> {
     }
 }
 
-
 pub fn run() {
     let mut stdout = stdout();
 
     let word_list = "Hello World I love you";
+    word_provider::get_words();
     let mut game = Game::new(word_list.split_whitespace().collect::<Vec<&str>>());
 
     setup_terminal(&stdout);
@@ -61,26 +63,55 @@ pub fn run() {
                     if game.jump_position + 1 == game.player_position && game.jump_position != 0 {
                         continue;
                     }
-                    game.jump_position = game.list
+                    game.jump_position = game
+                        .list
                         .iter()
                         .take(game.selected_word_index as usize + 1)
                         .map(|word| word.chars().count() + 1)
                         .sum::<usize>() as i32
                         - 1;
                     game.player_position = game.jump_position;
-                    stdout.execute(MoveTo(x + game.player_position as u16, y)).unwrap();
+                    stdout
+                        .execute(MoveTo(x + game.player_position as u16, y))
+                        .unwrap();
                     game.selected_word_index += 1;
                 }
-                if c == word_list.chars().nth(game.player_position as usize).unwrap() {
+                if c == word_list
+                    .chars()
+                    .nth(game.player_position as usize)
+                    .unwrap()
+                {
                     stdout.execute(SetForegroundColor(Color::White)).unwrap();
-                    stdout.execute(MoveTo(x + game.player_position as u16, y)).unwrap();
-                    print!("{}", word_list.chars().nth(game.player_position as usize).unwrap());
+                    stdout
+                        .execute(MoveTo(x + game.player_position as u16, y))
+                        .unwrap();
+                    print!(
+                        "{}",
+                        word_list
+                            .chars()
+                            .nth(game.player_position as usize)
+                            .unwrap()
+                    );
                 } else {
                     stdout.execute(SetForegroundColor(Color::Red)).unwrap();
-                    stdout.execute(MoveTo(x + game.player_position as u16, y)).unwrap();
-                    print!("{}", word_list.chars().nth(game.player_position as usize).unwrap());
+                    stdout
+                        .execute(MoveTo(x + game.player_position as u16, y))
+                        .unwrap();
+                    print!(
+                        "{}",
+                        word_list
+                            .chars()
+                            .nth(game.player_position as usize)
+                            .unwrap()
+                    );
                 }
-                if word_list.chars().nth(game.player_position as usize).unwrap() == ' ' && c != ' ' {
+                if word_list
+                    .chars()
+                    .nth(game.player_position as usize)
+                    .unwrap()
+                    == ' '
+                    && c != ' '
+                {
                     game.selected_word_index += 1;
                 }
                 stdout.flush().unwrap();
