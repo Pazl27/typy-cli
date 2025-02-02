@@ -5,4 +5,4 @@ edition = "2021"
 
 [dependencies]
 crossterm = "0.28.1"
-ctrlc = "3.4.5"
+clap = "3"
