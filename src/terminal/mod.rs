@@ -27,6 +27,10 @@ impl<'a> Game<'a> {
             selected_word_index: 0,
         }
     }
+
+    fn get_word_string(&self) -> String {
+        self.list.join(" ")
+    }
 }
 
 pub fn run() {
@@ -38,14 +42,14 @@ pub fn run() {
 
     setup_terminal(&stdout);
     let (cols, rows) = crossterm::terminal::size().unwrap();
-    let x = cols / 2 - (word_list.chars().count() / 2) as u16;
+    let x = cols / 2 - (game.get_word_string().chars().count() / 2) as u16;
     let y = rows / 2;
 
     print_words(x, y, &game.list, &stdout);
     stdout.execute(MoveTo(x, y)).unwrap();
 
     loop {
-        if game.player_position == word_list.chars().count() as i32 {
+        if game.player_position == game.get_word_string().chars().count() as i32 {
             break;
         }
         if let Ok(Event::Key(KeyEvent {
@@ -76,7 +80,8 @@ pub fn run() {
                         .unwrap();
                     game.selected_word_index += 1;
                 }
-                if c == word_list
+                if c == game
+                    .get_word_string()
                     .chars()
                     .nth(game.player_position as usize)
                     .unwrap()
@@ -87,7 +92,7 @@ pub fn run() {
                         .unwrap();
                     print!(
                         "{}",
-                        word_list
+                        game.get_word_string()
                             .chars()
                             .nth(game.player_position as usize)
                             .unwrap()
@@ -99,13 +104,14 @@ pub fn run() {
                         .unwrap();
                     print!(
                         "{}",
-                        word_list
+                        game.get_word_string()
                             .chars()
                             .nth(game.player_position as usize)
                             .unwrap()
                     );
                 }
-                if word_list
+                if game
+                    .get_word_string()
                     .chars()
                     .nth(game.player_position as usize)
                     .unwrap()
