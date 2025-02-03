@@ -1,23 +1,32 @@
-name: Run Cargo Tests
+name: main
 
 on:
   pull_request:
-    branches:
-      - master 
+    branches: [ master ]
+
+env:
+  CARGO_TERM_COLOR: always
 
 jobs:
-  test:
+  build_and_test:
+    name: Rust project
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - name: Set up Rust
-        uses: actions/setup-rust@1
+      - uses: Swatinem/rust-cache@v2
+
+      - name: setup toolchain
+        uses: hecrj/setup-rust-action@v1
         with:
           rust-version: stable
 
-      - name: Run tests
-        run: cargo test --verbose
+      - name: cargo test
+        run: cargo test --all-features
+
+      - name: rustfmt
+        run: cargo fmt --all -- --check
+
+      - name: clippy
+        run: cargo clippy --all --all-features --tests -- -D warnings
 
