@@ -1,6 +1,7 @@
-use crossterm::event::KeyModifiers;
+use crossterm::cursor::SetCursorStyle;
+use crossterm::event::{poll, KeyModifiers};
 use crossterm::{
-    cursor::MoveTo,
+    cursor::MoveTo, 
     event::{read, Event, KeyCode, KeyEvent},
     style::{Color, ResetColor, SetForegroundColor},
     terminal::{disable_raw_mode, enable_raw_mode, Clear, ClearType},
@@ -8,6 +9,8 @@ use crossterm::{
 };
 use std::io::stdout;
 use std::io::Write;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -51,7 +54,7 @@ impl Game {
     }
 }
 
-pub fn run() {
+pub fn run(timer_duration: u64) {
     let mut stdout = stdout();
 
     let mut game = Game::new(word_provider::get_words());
@@ -68,145 +71,166 @@ pub fn run() {
 
     let mut start_point = false;
 
+    let timer_expired = Arc::new(AtomicBool::new(false));
+    let timer_expired_clone = Arc::clone(&timer_expired);
+    let remaining_time = Arc::new(Mutex::new(timer_duration));
+    let remaining_time_clone = Arc::clone(&remaining_time);
+
+    let timer_thread = thread::spawn(move || {
+        start_timer(timer_duration, timer_expired_clone, remaining_time_clone);
+    });
+
     loop {
-        if game.player.position_x
-            == game.get_word_string(game.player.position_y).chars().count() as i32
-        {
-            start_point = true;
-            game.player.position_x = 0;
-            game.player.position_y += 1;
-            game.jump_position = 0;
-            game.selected_word_index = 0;
-            if game.player.position_y == game.list.len() as i32 {
-                break;
-            }
+        if timer_expired.load(Ordering::Relaxed) {
+            break;
         }
-        if let Ok(Event::Key(KeyEvent {
-            code, modifiers, ..
-        })) = read()
+
         {
-            if let Some(()) = close_typy(&code, &modifiers) {
-                break;
-            }
-            if let KeyCode::Char(c) = code {
-                if c == ' ' {
-                    if game.player.position_x == 0 {
-                        continue;
-                    }
-                    if start_point {
-                        start_point = false;
-                        stdout
-                            .execute(MoveTo(
-                                x + game.player.position_x as u16,
-                                y + game.player.position_y as u16,
-                            ))
-                            .unwrap();
-                        continue;
-                    }
-                    if game.selected_word_index
-                        == game
+            let remaining = *remaining_time.lock().unwrap();
+            stdout.execute(MoveTo(x, y - 2)).unwrap();
+            stdout.execute(SetForegroundColor(Color::Yellow)).unwrap();
+            print!("{:02}", remaining);
+            stdout.flush().unwrap();
+            stdout
+                .execute(MoveTo(
+                    x + game.player.position_x as u16,
+                    y + game.player.position_y as u16,
+                ))
+                .unwrap();
+        }
+
+        if poll(Duration::from_millis(5)).unwrap() {
+            if let Ok(Event::Key(KeyEvent {
+                code, modifiers, ..
+            })) = read()
+            {
+                if let Some(()) = close_typy(&code, &modifiers) {
+                    timer_expired.store(true, Ordering::Relaxed);
+                    break;
+                }
+                if let KeyCode::Char(c) = code {
+                    if c == ' ' {
+                        if game.player.position_x == 0 {
+                            continue;
+                        }
+                        if start_point {
+                            start_point = false;
+                            stdout
+                                .execute(MoveTo(
+                                    x + game.player.position_x as u16,
+                                    y + game.player.position_y as u16,
+                                ))
+                                .unwrap();
+                            continue;
+                        }
+                        if game.selected_word_index
+                            == game
+                                .list
+                                .get(game.player.position_y as usize)
+                                .unwrap()
+                                .len() as i32
+                                - 1
+                        {
+                            if game.player.position_y == game.list.len() as i32 {
+                                break;
+                            }
+
+                            game.player.position_x = 0;
+                            game.player.position_y += 1;
+                            game.jump_position = 1;
+                            game.selected_word_index = 0;
+
+                            stdout
+                                .execute(MoveTo(
+                                    x + game.player.position_x as u16,
+                                    y + game.player.position_y as u16,
+                                ))
+                                .unwrap();
+                            continue;
+                        }
+                        if game.jump_position + 1 == game.player.position_x
+                            && game.jump_position != 0
+                        {
+                            continue;
+                        }
+                        game.jump_position = game
                             .list
                             .get(game.player.position_y as usize)
                             .unwrap()
-                            .len() as i32
-                            - 1
-                    {
-                        if game.player.position_y == game.list.len() as i32 {
-                            break;
-                        }
-
-                        start_point = true;
-                        game.player.position_x = 0;
-                        game.player.position_y += 1;
-                        game.jump_position = 0;
-                        game.selected_word_index = 0;
-
+                            .iter()
+                            .take(game.selected_word_index as usize + 1)
+                            .map(|word| word.chars().count() + 1)
+                            .sum::<usize>() as i32
+                            - 1;
+                        game.player.position_x = game.jump_position;
                         stdout
                             .execute(MoveTo(
                                 x + game.player.position_x as u16,
                                 y + game.player.position_y as u16,
                             ))
                             .unwrap();
-                        continue;
+                        game.selected_word_index += 1;
                     }
-                    if game.jump_position + 1 == game.player.position_x && game.jump_position != 0 {
-                        continue;
-                    }
-                    game.jump_position = game
-                        .list
-                        .get(game.player.position_y as usize)
+                    if c == game
+                        .get_word_string(game.player.position_y)
+                        .chars()
+                        .nth(game.player.position_x as usize)
                         .unwrap()
-                        .iter()
-                        .take(game.selected_word_index as usize + 1)
-                        .map(|word| word.chars().count() + 1)
-                        .sum::<usize>() as i32
-                        - 1;
-                    game.player.position_x = game.jump_position;
-                    stdout
-                        .execute(MoveTo(
-                            x + game.player.position_x as u16,
-                            y + game.player.position_y as u16,
-                        ))
-                        .unwrap();
-                    game.selected_word_index += 1;
+                    {
+                        stdout.execute(SetForegroundColor(Color::White)).unwrap();
+                        stdout
+                            .execute(MoveTo(
+                                x + game.player.position_x as u16,
+                                y + game.player.position_y as u16,
+                            ))
+                            .unwrap();
+                        print!(
+                            "{}",
+                            game.get_word_string(game.player.position_y)
+                                .chars()
+                                .nth(game.player.position_x as usize)
+                                .unwrap()
+                        );
+                    } else {
+                        stdout.execute(SetForegroundColor(Color::Red)).unwrap();
+                        stdout
+                            .execute(MoveTo(
+                                x + game.player.position_x as u16,
+                                y + game.player.position_y as u16,
+                            ))
+                            .unwrap();
+                        print!(
+                            "{}",
+                            game.get_word_string(game.player.position_y)
+                                .chars()
+                                .nth(game.player.position_x as usize)
+                                .unwrap()
+                        );
+                    }
+                    if game
+                        .get_word_string(game.player.position_y)
+                        .chars()
+                        .nth(game.player.position_x as usize)
+                        .unwrap()
+                        == ' '
+                        && c != ' '
+                    {
+                        game.selected_word_index += 1;
+                    }
+                    stdout.flush().unwrap();
+                    game.player.position_x += 1;
                 }
-                if c == game
-                    .get_word_string(game.player.position_y)
-                    .chars()
-                    .nth(game.player.position_x as usize)
-                    .unwrap()
-                {
-                    stdout.execute(SetForegroundColor(Color::White)).unwrap();
-                    stdout
-                        .execute(MoveTo(
-                            x + game.player.position_x as u16,
-                            y + game.player.position_y as u16,
-                        ))
-                        .unwrap();
-                    print!(
-                        "{}",
-                        game.get_word_string(game.player.position_y)
-                            .chars()
-                            .nth(game.player.position_x as usize)
-                            .unwrap()
-                    );
-                } else {
-                    stdout.execute(SetForegroundColor(Color::Red)).unwrap();
-                    stdout
-                        .execute(MoveTo(
-                            x + game.player.position_x as u16,
-                            y + game.player.position_y as u16,
-                        ))
-                        .unwrap();
-                    print!(
-                        "{}",
-                        game.get_word_string(game.player.position_y)
-                            .chars()
-                            .nth(game.player.position_x as usize)
-                            .unwrap()
-                    );
-                }
-                if game
-                    .get_word_string(game.player.position_y)
-                    .chars()
-                    .nth(game.player.position_x as usize)
-                    .unwrap()
-                    == ' '
-                    && c != ' '
-                {
-                    game.selected_word_index += 1;
-                }
-                stdout.flush().unwrap();
-                game.player.position_x += 1;
             }
         }
     }
     reset_terminal(&stdout);
+    timer_thread.join().unwrap();
 }
 
 fn setup_terminal(mut stdout: &std::io::Stdout) {
     enable_raw_mode().unwrap();
     stdout.execute(Clear(ClearType::All)).unwrap();
+    stdout.execute(SetCursorStyle::SteadyBar).unwrap();
 }
 
 fn reset_terminal(mut stdout: &std::io::Stdout) {
@@ -214,6 +238,7 @@ fn reset_terminal(mut stdout: &std::io::Stdout) {
     stdout.execute(ResetColor).unwrap();
     stdout.execute(Clear(ClearType::All)).unwrap();
     stdout.execute(MoveTo(0, 0)).unwrap();
+    stdout.execute(SetCursorStyle::DefaultUserShape).unwrap();
     stdout.flush().unwrap();
 }
 
@@ -233,12 +258,18 @@ fn close_typy(code: &KeyCode, modifiers: &KeyModifiers) -> Option<()> {
     }
 }
 
-fn start_timer(duration: u64) {
+fn start_timer(duration: u64, timer_expired: Arc<AtomicBool>, remaining_time: Arc<Mutex<u64>>) {
     let start = Instant::now();
     while start.elapsed().as_secs() < duration {
+        if timer_expired.load(Ordering::Relaxed) {
+            break;
+        }
         let remaining = duration - start.elapsed().as_secs();
-        println!("Time remaining: {} seconds", remaining);
+        {
+            let mut remaining_time = remaining_time.lock().unwrap();
+            *remaining_time = remaining;
+        }
         thread::sleep(Duration::from_secs(1));
     }
-    println!("Time's up!");
+    timer_expired.store(true, Ordering::Relaxed);
 }
