@@ -48,14 +48,16 @@ pub fn run() {
     let y = rows / 2 - 1;
 
     for i in 0..game.list.len() {
-    print_words(x, y + i as u16, &game.list.get(i).unwrap(), &stdout);
-    stdout.execute(MoveTo(x, y as u16)).unwrap();
+        print_words(x, y + i as u16, &game.list.get(i).unwrap(), &stdout);
+        stdout.execute(MoveTo(x, y as u16)).unwrap();
     }
 
     let mut start_point = false;
 
     loop {
-        if game.player_position_x == game.get_word_string(game.player_position_y).chars().count() as i32 {
+        if game.player_position_x
+            == game.get_word_string(game.player_position_y).chars().count() as i32
+        {
             start_point = true;
             game.player_position_x = 0;
             game.player_position_y += 1;
@@ -76,17 +78,31 @@ pub fn run() {
                 if c == ' ' {
                     if start_point {
                         start_point = false;
-                        stdout.execute(MoveTo(x + game.player_position_x as u16, y + game.player_position_y as u16)).unwrap();
+                        stdout
+                            .execute(MoveTo(
+                                x + game.player_position_x as u16,
+                                y + game.player_position_y as u16,
+                            ))
+                            .unwrap();
                         continue;
                     }
-                    if game.selected_word_index == game.list.get(game.player_position_y as usize).unwrap().len() as i32 - 1 {
+                    if game.selected_word_index
+                        == game
+                            .list
+                            .get(game.player_position_y as usize)
+                            .unwrap()
+                            .len() as i32
+                            - 1
+                    {
                         break;
                     }
                     if game.jump_position + 1 == game.player_position_x && game.jump_position != 0 {
                         continue;
                     }
                     game.jump_position = game
-                        .list.get(game.player_position_y as usize).unwrap()
+                        .list
+                        .get(game.player_position_y as usize)
+                        .unwrap()
                         .iter()
                         .take(game.selected_word_index as usize + 1)
                         .map(|word| word.chars().count() + 1)
@@ -94,7 +110,10 @@ pub fn run() {
                         - 1;
                     game.player_position_x = game.jump_position;
                     stdout
-                        .execute(MoveTo(x + game.player_position_x as u16, y + game.player_position_y as u16))
+                        .execute(MoveTo(
+                            x + game.player_position_x as u16,
+                            y + game.player_position_y as u16,
+                        ))
                         .unwrap();
                     game.selected_word_index += 1;
                 }
@@ -106,7 +125,10 @@ pub fn run() {
                 {
                     stdout.execute(SetForegroundColor(Color::White)).unwrap();
                     stdout
-                        .execute(MoveTo(x + game.player_position_x as u16, y + game.player_position_y as u16))
+                        .execute(MoveTo(
+                            x + game.player_position_x as u16,
+                            y + game.player_position_y as u16,
+                        ))
                         .unwrap();
                     print!(
                         "{}",
@@ -118,7 +140,10 @@ pub fn run() {
                 } else {
                     stdout.execute(SetForegroundColor(Color::Red)).unwrap();
                     stdout
-                        .execute(MoveTo(x + game.player_position_x as u16, y + game.player_position_y as u16))
+                        .execute(MoveTo(
+                            x + game.player_position_x as u16,
+                            y + game.player_position_y as u16,
+                        ))
                         .unwrap();
                     print!(
                         "{}",
