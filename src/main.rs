@@ -4,7 +4,6 @@ mod word_provider;
 use clap::{App, Arg};
 
 fn main() {
-    
     let matches = App::new("Typy CLI")
         .version("0.1.0")
         .author("Pazl")
@@ -18,7 +17,7 @@ fn main() {
                 .default_value("30")
                 .takes_value(true),
         )
-            .arg(
+        .arg(
             Arg::new("stats")
                 .short('s')
                 .long("stats")
@@ -26,13 +25,13 @@ fn main() {
         )
         .get_matches();
 
-
-    let _duration = matches.value_of("duration").unwrap();
+    let duration_str = matches.value_of("duration").unwrap();
+    let duration: u64 = duration_str.parse().expect("Invalid duration value");
 
     if matches.is_present("stats") {
         println!("Stats");
         return;
     }
 
-    terminal::run();
+    terminal::run(duration);
 }
