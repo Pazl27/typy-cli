@@ -8,6 +8,8 @@ use crossterm::{
 };
 use std::io::stdout;
 use std::io::Write;
+use std::thread;
+use std::time::{Duration, Instant};
 
 use crate::word_provider;
 
@@ -229,4 +231,14 @@ fn close_typy(code: &KeyCode, modifiers: &KeyModifiers) -> Option<()> {
         KeyCode::Char('c') if modifiers.contains(KeyModifiers::CONTROL) => Some(()),
         _ => None,
     }
+}
+
+fn start_timer(duration: u64) {
+    let start = Instant::now();
+    while start.elapsed().as_secs() < duration {
+        let remaining = duration - start.elapsed().as_secs();
+        println!("Time remaining: {} seconds", remaining);
+        thread::sleep(Duration::from_secs(1));
+    }
+    println!("Time's up!");
 }
