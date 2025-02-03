@@ -15,22 +15,20 @@ const LENGTH: i32 = 70;
 
 struct Player {
     position_x: i32,
-    position_y: i32
+    position_y: i32,
 }
 
 impl Player {
     fn new() -> Self {
         Player {
             position_x: 0,
-            position_y: 0
+            position_y: 0,
         }
     }
 }
 
 struct Game {
     list: Vec<Vec<String>>,
-    // player_position_x: i32,
-    // player_position_y: i32,
     player: Player,
     jump_position: i32,
     selected_word_index: i32,
@@ -41,8 +39,6 @@ impl Game {
         Game {
             list,
             player: Player::new(),
-            // player_position_x: 0,
-            // player_position_y: 0,
             jump_position: 0,
             selected_word_index: 0,
         }
@@ -92,6 +88,9 @@ pub fn run() {
             }
             if let KeyCode::Char(c) = code {
                 if c == ' ' {
+                    if game.player.position_x == 0 {
+                        continue;
+                    }
                     if start_point {
                         start_point = false;
                         stdout
@@ -110,7 +109,23 @@ pub fn run() {
                             .len() as i32
                             - 1
                     {
-                        break;
+                        if game.player.position_y == game.list.len() as i32 {
+                            break;
+                        }
+
+                        start_point = true;
+                        game.player.position_x = 0;
+                        game.player.position_y += 1;
+                        game.jump_position = 0;
+                        game.selected_word_index = 0;
+
+                        stdout
+                            .execute(MoveTo(
+                                x + game.player.position_x as u16,
+                                y + game.player.position_y as u16,
+                            ))
+                            .unwrap();
+                        continue;
                     }
                     if game.jump_position + 1 == game.player.position_x && game.jump_position != 0 {
                         continue;
