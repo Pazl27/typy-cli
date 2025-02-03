@@ -13,10 +13,25 @@ use crate::word_provider;
 
 const LENGTH: i32 = 70;
 
+struct Player {
+    position_x: i32,
+    position_y: i32
+}
+
+impl Player {
+    fn new() -> Self {
+        Player {
+            position_x: 0,
+            position_y: 0
+        }
+    }
+}
+
 struct Game {
     list: Vec<Vec<String>>,
-    player_position_x: i32,
-    player_position_y: i32,
+    // player_position_x: i32,
+    // player_position_y: i32,
+    player: Player,
     jump_position: i32,
     selected_word_index: i32,
 }
@@ -25,8 +40,9 @@ impl Game {
     fn new(list: Vec<Vec<String>>) -> Self {
         Game {
             list,
-            player_position_x: 0,
-            player_position_y: 0,
+            player: Player::new(),
+            // player_position_x: 0,
+            // player_position_y: 0,
             jump_position: 0,
             selected_word_index: 0,
         }
@@ -55,15 +71,15 @@ pub fn run() {
     let mut start_point = false;
 
     loop {
-        if game.player_position_x
-            == game.get_word_string(game.player_position_y).chars().count() as i32
+        if game.player.position_x
+            == game.get_word_string(game.player.position_y).chars().count() as i32
         {
             start_point = true;
-            game.player_position_x = 0;
-            game.player_position_y += 1;
+            game.player.position_x = 0;
+            game.player.position_y += 1;
             game.jump_position = 0;
             game.selected_word_index = 0;
-            if game.player_position_y == game.list.len() as i32 {
+            if game.player.position_y == game.list.len() as i32 {
                 break;
             }
         }
@@ -80,8 +96,8 @@ pub fn run() {
                         start_point = false;
                         stdout
                             .execute(MoveTo(
-                                x + game.player_position_x as u16,
-                                y + game.player_position_y as u16,
+                                x + game.player.position_x as u16,
+                                y + game.player.position_y as u16,
                             ))
                             .unwrap();
                         continue;
@@ -89,74 +105,74 @@ pub fn run() {
                     if game.selected_word_index
                         == game
                             .list
-                            .get(game.player_position_y as usize)
+                            .get(game.player.position_y as usize)
                             .unwrap()
                             .len() as i32
                             - 1
                     {
                         break;
                     }
-                    if game.jump_position + 1 == game.player_position_x && game.jump_position != 0 {
+                    if game.jump_position + 1 == game.player.position_x && game.jump_position != 0 {
                         continue;
                     }
                     game.jump_position = game
                         .list
-                        .get(game.player_position_y as usize)
+                        .get(game.player.position_y as usize)
                         .unwrap()
                         .iter()
                         .take(game.selected_word_index as usize + 1)
                         .map(|word| word.chars().count() + 1)
                         .sum::<usize>() as i32
                         - 1;
-                    game.player_position_x = game.jump_position;
+                    game.player.position_x = game.jump_position;
                     stdout
                         .execute(MoveTo(
-                            x + game.player_position_x as u16,
-                            y + game.player_position_y as u16,
+                            x + game.player.position_x as u16,
+                            y + game.player.position_y as u16,
                         ))
                         .unwrap();
                     game.selected_word_index += 1;
                 }
                 if c == game
-                    .get_word_string(game.player_position_y)
+                    .get_word_string(game.player.position_y)
                     .chars()
-                    .nth(game.player_position_x as usize)
+                    .nth(game.player.position_x as usize)
                     .unwrap()
                 {
                     stdout.execute(SetForegroundColor(Color::White)).unwrap();
                     stdout
                         .execute(MoveTo(
-                            x + game.player_position_x as u16,
-                            y + game.player_position_y as u16,
+                            x + game.player.position_x as u16,
+                            y + game.player.position_y as u16,
                         ))
                         .unwrap();
                     print!(
                         "{}",
-                        game.get_word_string(game.player_position_y)
+                        game.get_word_string(game.player.position_y)
                             .chars()
-                            .nth(game.player_position_x as usize)
+                            .nth(game.player.position_x as usize)
                             .unwrap()
                     );
                 } else {
                     stdout.execute(SetForegroundColor(Color::Red)).unwrap();
                     stdout
                         .execute(MoveTo(
-                            x + game.player_position_x as u16,
-                            y + game.player_position_y as u16,
+                            x + game.player.position_x as u16,
+                            y + game.player.position_y as u16,
                         ))
                         .unwrap();
                     print!(
                         "{}",
-                        game.get_word_string(game.player_position_y)
+                        game.get_word_string(game.player.position_y)
                             .chars()
-                            .nth(game.player_position_x as usize)
+                            .nth(game.player.position_x as usize)
                             .unwrap()
                     );
                 }
                 if game
-                    .get_word_string(game.player_position_y)
+                    .get_word_string(game.player.position_y)
                     .chars()
-                    .nth(game.player_position_x as usize)
+                    .nth(game.player.position_x as usize)
                     .unwrap()
                     == ' '
                     && c != ' '
@@ -164,7 +180,7 @@ pub fn run() {
                     game.selected_word_index += 1;
                 }
                 stdout.flush().unwrap();
-                game.player_position_x += 1;
+                game.player.position_x += 1;
             }
         }
     }
