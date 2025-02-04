@@ -1,5 +1,6 @@
 mod terminal;
 mod word_provider;
+mod scores;
 
 use clap::{App, Arg};
 

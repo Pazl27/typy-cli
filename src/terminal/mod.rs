@@ -1,7 +1,7 @@
 use crossterm::cursor::SetCursorStyle;
 use crossterm::event::{poll, KeyModifiers};
 use crossterm::{
-    cursor::MoveTo, 
+    cursor::MoveTo,
     event::{read, Event, KeyCode, KeyEvent},
     style::{Color, ResetColor, SetForegroundColor},
     terminal::{disable_raw_mode, enable_raw_mode, Clear, ClearType},
@@ -14,6 +14,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
 
+use crate::scores::finish;
 use crate::word_provider;
 
 const LENGTH: i32 = 70;
@@ -223,6 +224,9 @@ pub fn run(timer_duration: u64) {
             }
         }
     }
+
+    finish::show_stats(&stdout, Vec::new(), 0, 0);
+
     reset_terminal(&stdout);
     timer_thread.join().unwrap();
 }
