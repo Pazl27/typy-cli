@@ -55,14 +55,14 @@ pub fn show_stats(
 
     graph::draw_graph(lps_raw).unwrap();
 
-loop {
-    if let Ok(Event::Key(KeyEvent {
-        code, modifiers, ..
-    })) = read()
-    {
-        if utils::close_typy(&code, &modifiers).is_some() {
-            break None;
+    loop {
+        if let Ok(Event::Key(KeyEvent {
+            code, modifiers, ..
+        })) = read()
+        {
+            if utils::close_typy(&code, &modifiers).is_some() {
+                break None;
+            }
         }
     }
-}
 }

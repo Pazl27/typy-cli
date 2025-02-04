@@ -15,8 +15,8 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use crate::scores::finish;
-use crate::word_provider;
 use crate::utils;
+use crate::word_provider;
 
 struct Player {
     position_x: i32,
