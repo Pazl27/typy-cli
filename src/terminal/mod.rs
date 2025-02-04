@@ -1,5 +1,5 @@
 use crossterm::cursor::SetCursorStyle;
-use crossterm::event::{poll, KeyModifiers};
+use crossterm::event::poll;
 use crossterm::{
     cursor::MoveTo,
     event::{read, Event, KeyCode, KeyEvent},
@@ -16,8 +16,7 @@ use std::time::{Duration, Instant};
 
 use crate::scores::finish;
 use crate::word_provider;
-
-const LENGTH: i32 = 70;
+use crate::utils;
 
 struct Player {
     position_x: i32,
@@ -61,9 +60,8 @@ pub fn run(timer_duration: u64) {
     let mut game = Game::new(word_provider::get_words());
 
     setup_terminal(&stdout);
-    let (cols, rows) = crossterm::terminal::size().unwrap();
-    let x = cols / 2 - (LENGTH / 2) as u16;
-    let y = rows / 2 - 1;
+
+    let (x, y) = utils::calc_size();
 
     for i in 0..game.list.len() {
         print_words(x, y + i as u16, &game.list.get(i).unwrap(), &stdout);
@@ -105,7 +103,7 @@ pub fn run(timer_duration: u64) {
                 code, modifiers, ..
             })) = read()
             {
-                if let Some(()) = close_typy(&code, &modifiers) {
+                if let Some(()) = utils::close_typy(&code, &modifiers) {
                     timer_expired.store(true, Ordering::Relaxed);
                     break;
                 }
@@ -252,14 +250,6 @@ fn print_words(x: u16, y: u16, words: &Vec<String>, mut stdout: &std::io::Stdout
     words.iter().for_each(|word| {
         print!("{} ", word);
     });
-}
-
-fn close_typy(code: &KeyCode, modifiers: &KeyModifiers) -> Option<()> {
-    match code {
-        KeyCode::Esc => Some(()),
-        KeyCode::Char('c') if modifiers.contains(KeyModifiers::CONTROL) => Some(()),
-        _ => None,
-    }
 }
 
 fn start_timer(duration: u64, timer_expired: Arc<AtomicBool>, remaining_time: Arc<Mutex<u64>>) {
