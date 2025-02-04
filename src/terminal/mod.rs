@@ -37,6 +37,7 @@ struct Game {
     player: Player,
     jump_position: i32,
     selected_word_index: i32,
+    quit: bool,
 }
 
 impl Game {
@@ -46,6 +47,7 @@ impl Game {
             player: Player::new(),
             jump_position: 0,
             selected_word_index: 0,
+            quit: false,
         }
     }
 
@@ -54,10 +56,35 @@ impl Game {
     }
 }
 
+struct Stats {
+    lps: Vec<i32>,
+    letter_count: i32,
+    words_raw: i32,
+    incorrect_words: i32,
+}
+
+impl Stats {
+    fn new() -> Self {
+        Stats {
+            lps: Vec::new(),
+            letter_count: 0,
+            words_raw: 0,
+            incorrect_words: 0,
+        }
+    }
+
+    fn add_letters(&mut self) {
+        self.lps.push(self.letter_count);
+        self.letter_count = 0;
+    }
+}
+
 pub fn run(timer_duration: u64) {
     let mut stdout = stdout();
 
     let mut game = Game::new(word_provider::get_words());
+
+    let mut stats = Stats::new();
 
     setup_terminal(&stdout);
 
@@ -74,6 +101,7 @@ pub fn run(timer_duration: u64) {
     let timer_expired_clone = Arc::clone(&timer_expired);
     let remaining_time = Arc::new(Mutex::new(timer_duration));
     let remaining_time_clone = Arc::clone(&remaining_time);
+    let mut remaining_prev: u64 = 0;
 
     let timer_thread = thread::spawn(move || {
         start_timer(timer_duration, timer_expired_clone, remaining_time_clone);
@@ -96,6 +124,10 @@ pub fn run(timer_duration: u64) {
                     y + game.player.position_y as u16,
                 ))
                 .unwrap();
+            if remaining != remaining_prev {
+                stats.add_letters();
+            }
+            remaining_prev = remaining;
         }
 
         if poll(Duration::from_millis(5)).unwrap() {
@@ -105,6 +137,7 @@ pub fn run(timer_duration: u64) {
             {
                 if let Some(()) = utils::close_typy(&code, &modifiers) {
                     timer_expired.store(true, Ordering::Relaxed);
+                    game.quit = true;
                     break;
                 }
                 if let KeyCode::Char(c) = code {
@@ -190,6 +223,7 @@ pub fn run(timer_duration: u64) {
                                 .nth(game.player.position_x as usize)
                                 .unwrap()
                         );
+                        stats.letter_count += 1;
                     } else {
                         stdout.execute(SetForegroundColor(Color::Red)).unwrap();
                         stdout
@@ -205,6 +239,7 @@ pub fn run(timer_duration: u64) {
                                 .nth(game.player.position_x as usize)
                                 .unwrap()
                         );
+                        stats.letter_count += 1;
                     }
                     if game
                         .get_word_string(game.player.position_y)
@@ -223,7 +258,9 @@ pub fn run(timer_duration: u64) {
         }
     }
 
-    finish::show_stats(&stdout, Vec::new(), 0, 0);
+    if !game.quit {
+        finish::show_stats(&stdout, stats.lps, 0, 0);
+    }
 
     reset_terminal(&stdout);
     timer_thread.join().unwrap();

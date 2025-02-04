@@ -1,21 +1,18 @@
-use tui::layout::Rect;
-use tui::text::Span;
 use std::io;
 use tui::backend::CrosstermBackend;
+use tui::layout::Rect;
 use tui::style::{Color, Style};
 use tui::symbols::{self};
-use tui::widgets::{Axis, GraphType};
+use tui::text::Span;
 use tui::widgets::Chart;
 use tui::widgets::Dataset;
+use tui::widgets::{Axis, GraphType};
 use tui::Terminal;
 
 pub fn draw_graph(data: Vec<i32>) -> Result<(), io::Error> {
     let stdout = io::stdout();
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
-
-    //DEBUG
-    let data = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
     terminal.draw(|f| {
         let size = f.size();
@@ -26,24 +23,22 @@ pub fn draw_graph(data: Vec<i32>) -> Result<(), io::Error> {
             .map(|(i, &x)| (i as f64, x as f64))
             .collect::<Vec<(f64, f64)>>();
 
-        let datasets = vec![
-            Dataset::default()
-                .marker(symbols::Marker::Braille)
-                .graph_type(GraphType::Line)
-                .style(Style::default().fg(Color::Yellow))
-                .data(&converted_data),
-        ];
+        let datasets = vec![Dataset::default()
+            .marker(symbols::Marker::Braille)
+            .graph_type(GraphType::Line)
+            .style(Style::default().fg(Color::Yellow))
+            .data(&converted_data)];
+
         let end = data.len().to_string();
-        let middle = (data.len() / 2).to_string();
         let max_y = data.iter().max().unwrap().to_string();
         let chart = Chart::new(datasets)
             .x_axis(
                 Axis::default()
-                    .title(Span::styled("time", Style::default().fg(Color::Red)))
+                    .title(Span::styled("time in s", Style::default().fg(Color::Red)))
                     .style(Style::default().fg(Color::White))
                     .bounds([0.0, 10.0])
                     .labels(
-                        ["0", middle.as_str(), end.as_str()]
+                        ["0", end.as_str()]
                             .iter()
                             .cloned()
                             .map(Span::from)
