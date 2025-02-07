@@ -19,11 +19,6 @@ pub fn show_stats(
     let raw_wpm = words_raw as f64 / minutes;
     let accuracy = (1.0 - (incorrect_words as f64 / words_raw as f64)) * 100.0;
 
-    //DEBUG
-    let wpm = 100.0;
-    let raw_wpm = 100.0;
-    let accuracy = 100.0;
-
     stdout.execute(Clear(ClearType::All)).unwrap();
 
     // Draw infos

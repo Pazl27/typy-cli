@@ -95,7 +95,7 @@ pub fn run(timer_duration: u64) {
         stdout.execute(MoveTo(x, y as u16)).unwrap();
     }
 
-    let mut start_point = false;
+    let mut wrong_word = false;
 
     let timer_expired = Arc::new(AtomicBool::new(false));
     let timer_expired_clone = Arc::clone(&timer_expired);
@@ -108,6 +108,17 @@ pub fn run(timer_duration: u64) {
     });
 
     loop {
+        if game.player.position_y == game.list.len() as i32 {
+            break;
+        }
+
+        stdout
+            .execute(MoveTo(
+                x + game.player.position_x as u16,
+                y + game.player.position_y as u16,
+            ))
+            .unwrap();
+
         if timer_expired.load(Ordering::Relaxed) {
             break;
         }
@@ -142,19 +153,26 @@ pub fn run(timer_duration: u64) {
                 }
                 if let KeyCode::Char(c) = code {
                     if c == ' ' {
+                        // jump to next word from the end of the current word
+                        let word_string = game.get_word_string(game.player.position_y);
+                        if game.player.position_x as usize >= word_string.len()
+                            || word_string
+                                .chars()
+                                .nth(game.player.position_x as usize)
+                                .unwrap()
+                                == ' '
+                        {
+                            stats.words_raw += 1;
+                            if wrong_word {
+                                stats.incorrect_words += 1;
+                                wrong_word = false;
+                            }
+                        }
+                        // not able to press space at the start of a line
                         if game.player.position_x == 0 {
                             continue;
                         }
-                        if start_point {
-                            start_point = false;
-                            stdout
-                                .execute(MoveTo(
-                                    x + game.player.position_x as u16,
-                                    y + game.player.position_y as u16,
-                                ))
-                                .unwrap();
-                            continue;
-                        }
+                        // check if is at end of line
                         if game.selected_word_index
                             == game
                                 .list
@@ -203,6 +221,7 @@ pub fn run(timer_duration: u64) {
                             .unwrap();
                         game.selected_word_index += 1;
                     }
+                    // check the typed letter
                     if c == game
                         .get_word_string(game.player.position_y)
                         .chars()
@@ -225,6 +244,7 @@ pub fn run(timer_duration: u64) {
                         );
                         stats.letter_count += 1;
                     } else {
+                        wrong_word = true;
                         stdout.execute(SetForegroundColor(Color::Red)).unwrap();
                         stdout
                             .execute(MoveTo(
@@ -259,10 +279,11 @@ pub fn run(timer_duration: u64) {
     }
 
     if !game.quit {
-        finish::show_stats(&stdout, stats.lps, 0, 0);
+        finish::show_stats(&stdout, stats.lps, stats.words_raw, stats.incorrect_words);
     }
 
     reset_terminal(&stdout);
+    timer_expired.store(true, Ordering::Relaxed);
     timer_thread.join().unwrap();
 }
 
