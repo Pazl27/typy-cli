@@ -1,7 +1,7 @@
 use crossterm::cursor::SetCursorStyle;
-use crossterm::event::{poll, KeyModifiers};
+use crossterm::event::poll;
 use crossterm::{
-    cursor::MoveTo, 
+    cursor::MoveTo,
     event::{read, Event, KeyCode, KeyEvent},
     style::{Color, ResetColor, SetForegroundColor},
     terminal::{disable_raw_mode, enable_raw_mode, Clear, ClearType},
@@ -14,9 +14,10 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
 
+use crate::scores::finish_overview;
+use crate::scores::stats::Stats;
+use crate::utils;
 use crate::word_provider;
-
-const LENGTH: i32 = 70;
 
 struct Player {
     position_x: i32,
@@ -37,6 +38,7 @@ struct Game {
     player: Player,
     jump_position: i32,
     selected_word_index: i32,
+    quit: bool,
 }
 
 impl Game {
@@ -46,6 +48,7 @@ impl Game {
             player: Player::new(),
             jump_position: 0,
             selected_word_index: 0,
+            quit: false,
         }
     }
 
@@ -59,28 +62,39 @@ pub fn run(timer_duration: u64) {
 
     let mut game = Game::new(word_provider::get_words());
 
+    let mut stats = Stats::new();
+
     setup_terminal(&stdout);
-    let (cols, rows) = crossterm::terminal::size().unwrap();
-    let x = cols / 2 - (LENGTH / 2) as u16;
-    let y = rows / 2 - 1;
+
+    let (x, y) = utils::calc_size();
 
     for i in 0..game.list.len() {
         print_words(x, y + i as u16, &game.list.get(i).unwrap(), &stdout);
         stdout.execute(MoveTo(x, y as u16)).unwrap();
     }
 
-    let mut start_point = false;
-
     let timer_expired = Arc::new(AtomicBool::new(false));
     let timer_expired_clone = Arc::clone(&timer_expired);
     let remaining_time = Arc::new(Mutex::new(timer_duration));
     let remaining_time_clone = Arc::clone(&remaining_time);
+    let mut remaining_prev: u64 = 0;
 
     let timer_thread = thread::spawn(move || {
         start_timer(timer_duration, timer_expired_clone, remaining_time_clone);
     });
 
     loop {
+        if game.player.position_y == game.list.len() as i32 {
+            break;
+        }
+
+        stdout
+            .execute(MoveTo(
+                x + game.player.position_x as u16,
+                y + game.player.position_y as u16,
+            ))
+            .unwrap();
+
         if timer_expired.load(Ordering::Relaxed) {
             break;
         }
@@ -97,6 +111,10 @@ pub fn run(timer_duration: u64) {
                     y + game.player.position_y as u16,
                 ))
                 .unwrap();
+            if remaining != remaining_prev {
+                stats.add_letters();
+            }
+            remaining_prev = remaining;
         }
 
         if poll(Duration::from_millis(5)).unwrap() {
@@ -104,25 +122,27 @@ pub fn run(timer_duration: u64) {
                 code, modifiers, ..
             })) = read()
             {
-                if let Some(()) = close_typy(&code, &modifiers) {
+                if let Some(()) = utils::close_typy(&code, &modifiers) {
                     timer_expired.store(true, Ordering::Relaxed);
+                    game.quit = true;
                     break;
                 }
                 if let KeyCode::Char(c) = code {
                     if c == ' ' {
+                        // not able to press space at the start of a line
                         if game.player.position_x == 0 {
                             continue;
                         }
-                        if start_point {
-                            start_point = false;
-                            stdout
-                                .execute(MoveTo(
-                                    x + game.player.position_x as u16,
-                                    y + game.player.position_y as u16,
-                                ))
-                                .unwrap();
+                        if game
+                            .get_word_string(game.player.position_y)
+                            .chars()
+                            .nth((game.player.position_x - 1) as usize)
+                            .unwrap()
+                            == ' '
+                        {
                             continue;
                         }
+                        // check if is at end of line
                         if game.selected_word_index
                             == game
                                 .list
@@ -171,6 +191,7 @@ pub fn run(timer_duration: u64) {
                             .unwrap();
                         game.selected_word_index += 1;
                     }
+                    // check the typed letter
                     if c == game
                         .get_word_string(game.player.position_y)
                         .chars()
@@ -191,7 +212,9 @@ pub fn run(timer_duration: u64) {
                                 .nth(game.player.position_x as usize)
                                 .unwrap()
                         );
+                        stats.letter_count += 1;
                     } else {
+                        stats.incorrect_letters += 1;
                         stdout.execute(SetForegroundColor(Color::Red)).unwrap();
                         stdout
                             .execute(MoveTo(
@@ -206,6 +229,7 @@ pub fn run(timer_duration: u64) {
                                 .nth(game.player.position_x as usize)
                                 .unwrap()
                         );
+                        stats.letter_count += 1;
                     }
                     if game
                         .get_word_string(game.player.position_y)
@@ -223,7 +247,13 @@ pub fn run(timer_duration: u64) {
             }
         }
     }
+
+    if !game.quit {
+        finish_overview::show_stats(&stdout, stats);
+    }
+
     reset_terminal(&stdout);
+    timer_expired.store(true, Ordering::Relaxed);
     timer_thread.join().unwrap();
 }
 
@@ -248,14 +278,6 @@ fn print_words(x: u16, y: u16, words: &Vec<String>, mut stdout: &std::io::Stdout
     words.iter().for_each(|word| {
         print!("{} ", word);
     });
-}
-
-fn close_typy(code: &KeyCode, modifiers: &KeyModifiers) -> Option<()> {
-    match code {
-        KeyCode::Esc => Some(()),
-        KeyCode::Char('c') if modifiers.contains(KeyModifiers::CONTROL) => Some(()),
-        _ => None,
-    }
 }
 
 fn start_timer(duration: u64, timer_expired: Arc<AtomicBool>, remaining_time: Arc<Mutex<u64>>) {
