@@ -6,18 +6,12 @@ use crossterm::terminal::{Clear, ClearType};
 use crossterm::ExecutableCommand;
 
 use crate::utils;
+use crate::scores::stats::Stats;
 
 pub fn show_stats(
     mut stdout: &std::io::Stdout,
-    lps_raw: Vec<i32>,
-    words_raw: i32,
-    incorrect_words: i32,
+    stats: Stats
 ) -> Option<()> {
-    let total_seconds = lps_raw.len() as i32;
-    let minutes = total_seconds as f64 / 60.0;
-    let wpm = (words_raw - incorrect_words) as f64 / minutes;
-    let raw_wpm = words_raw as f64 / minutes;
-    let accuracy = (1.0 - (incorrect_words as f64 / words_raw as f64)) * 100.0;
 
     stdout.execute(Clear(ClearType::All)).unwrap();
 
@@ -31,7 +25,7 @@ pub fn show_stats(
     stdout
         .execute(SetForegroundColor(crossterm::style::Color::Yellow))
         .unwrap();
-    print!("{:02}", wpm as i32);
+    print!("{:02}", stats.wpm() as i32);
     stdout.execute(MoveTo(15, 20)).unwrap();
     stdout
         .execute(SetForegroundColor(crossterm::style::Color::Grey))
@@ -41,14 +35,14 @@ pub fn show_stats(
     stdout
         .execute(SetForegroundColor(crossterm::style::Color::Yellow))
         .unwrap();
-    print!("{:02}", raw_wpm as i32);
+    print!("{:02}", stats.raw_wpm() as i32);
     stdout.execute(MoveTo(37, 25)).unwrap();
     stdout
         .execute(SetForegroundColor(crossterm::style::Color::Yellow))
         .unwrap();
-    print!("ACCURACY: {:.2}%", accuracy);
+    print!("ACCURACY: {:.2}%", stats.accuracy());
 
-    graph::draw_graph(lps_raw).unwrap();
+    graph::draw_graph(stats.lps).unwrap();
 
     loop {
         if let Ok(Event::Key(KeyEvent {

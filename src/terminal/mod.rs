@@ -17,6 +17,7 @@ use std::time::{Duration, Instant};
 use crate::scores::finish;
 use crate::utils;
 use crate::word_provider;
+use crate::scores::stats::Stats;
 
 struct Player {
     position_x: i32,
@@ -56,29 +57,6 @@ impl Game {
     }
 }
 
-struct Stats {
-    lps: Vec<i32>,
-    letter_count: i32,
-    words_raw: i32,
-    incorrect_words: i32,
-}
-
-impl Stats {
-    fn new() -> Self {
-        Stats {
-            lps: Vec::new(),
-            letter_count: 0,
-            words_raw: 0,
-            incorrect_words: 0,
-        }
-    }
-
-    fn add_letters(&mut self) {
-        self.lps.push(self.letter_count);
-        self.letter_count = 0;
-    }
-}
-
 pub fn run(timer_duration: u64) {
     let mut stdout = stdout();
 
@@ -94,8 +72,6 @@ pub fn run(timer_duration: u64) {
         print_words(x, y + i as u16, &game.list.get(i).unwrap(), &stdout);
         stdout.execute(MoveTo(x, y as u16)).unwrap();
     }
-
-    let mut wrong_word = false;
 
     let timer_expired = Arc::new(AtomicBool::new(false));
     let timer_expired_clone = Arc::clone(&timer_expired);
@@ -153,21 +129,6 @@ pub fn run(timer_duration: u64) {
                 }
                 if let KeyCode::Char(c) = code {
                     if c == ' ' {
-                        // jump to next word from the end of the current word
-                        let word_string = game.get_word_string(game.player.position_y);
-                        if game.player.position_x as usize >= word_string.len()
-                            || word_string
-                                .chars()
-                                .nth(game.player.position_x as usize)
-                                .unwrap()
-                                == ' '
-                        {
-                            stats.words_raw += 1;
-                            if wrong_word {
-                                stats.incorrect_words += 1;
-                                wrong_word = false;
-                            }
-                        }
                         // not able to press space at the start of a line
                         if game.player.position_x == 0 {
                             continue;
@@ -244,7 +205,7 @@ pub fn run(timer_duration: u64) {
                         );
                         stats.letter_count += 1;
                     } else {
-                        wrong_word = true;
+                        stats.incorrect_letters += 1;
                         stdout.execute(SetForegroundColor(Color::Red)).unwrap();
                         stdout
                             .execute(MoveTo(
@@ -279,7 +240,7 @@ pub fn run(timer_duration: u64) {
     }
 
     if !game.quit {
-        finish::show_stats(&stdout, stats.lps, stats.words_raw, stats.incorrect_words);
+        finish::show_stats(&stdout, stats);
     }
 
     reset_terminal(&stdout);
