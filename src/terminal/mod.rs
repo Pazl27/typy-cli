@@ -14,10 +14,10 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
 
-use crate::scores::finish;
+use crate::scores::finish_overview;
+use crate::scores::stats::Stats;
 use crate::utils;
 use crate::word_provider;
-use crate::scores::stats::Stats;
 
 struct Player {
     position_x: i32,
@@ -133,6 +133,15 @@ pub fn run(timer_duration: u64) {
                         if game.player.position_x == 0 {
                             continue;
                         }
+                        if game
+                            .get_word_string(game.player.position_y)
+                            .chars()
+                            .nth((game.player.position_x - 1) as usize)
+                            .unwrap()
+                            == ' '
+                        {
+                            continue;
+                        }
                         // check if is at end of line
                         if game.selected_word_index
                             == game
@@ -240,7 +249,7 @@ pub fn run(timer_duration: u64) {
     }
 
     if !game.quit {
-        finish::show_stats(&stdout, stats);
+        finish_overview::show_stats(&stdout, stats);
     }
 
     reset_terminal(&stdout);
