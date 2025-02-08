@@ -1,5 +1,5 @@
-#[allow(deprecated)]
-use std::{env::home_dir, fs, process::Command};
+use std::{fs, process::Command};
+use dirs::home_dir;
 
 use crossterm::event::{KeyCode, KeyModifiers};
 
@@ -21,7 +21,6 @@ pub fn calc_size() -> (u16, u16) {
     (x, y)
 }
 
-#[allow(deprecated)]
 pub fn create_config() {
     if let Some(home_path) = home_dir() {
         let config_dir = home_path.join(".config/typy");
@@ -44,7 +43,6 @@ pub fn create_config() {
     }
 }
 
-#[allow(deprecated)]
 pub fn open_config() {
     if let Some(home_path) = home_dir() {
         let config_dir = home_path.join(".config/typy");
