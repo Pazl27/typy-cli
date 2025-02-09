@@ -18,6 +18,7 @@ use crate::scores::finish_overview;
 use crate::scores::stats::Stats;
 use crate::utils;
 use crate::word_provider;
+use crate::theme::colors::ThemeColors;
 
 struct Player {
     position_x: i32,
@@ -57,7 +58,7 @@ impl Game {
     }
 }
 
-pub fn run(timer_duration: u64) {
+pub fn run(timer_duration: u64, theme: ThemeColors) {
     let mut stdout = stdout();
 
     let mut game = Game::new(word_provider::get_words());
@@ -69,7 +70,7 @@ pub fn run(timer_duration: u64) {
     let (x, y) = utils::calc_size();
 
     for i in 0..game.list.len() {
-        print_words(x, y + i as u16, &game.list.get(i).unwrap(), &stdout);
+        print_words(x, y + i as u16, &game.list.get(i).unwrap(), &stdout, &theme);
         stdout.execute(MoveTo(x, y as u16)).unwrap();
     }
 
@@ -102,7 +103,7 @@ pub fn run(timer_duration: u64) {
         {
             let remaining = *remaining_time.lock().unwrap();
             stdout.execute(MoveTo(x, y - 2)).unwrap();
-            stdout.execute(SetForegroundColor(Color::Yellow)).unwrap();
+            stdout.execute(SetForegroundColor(theme.accent)).unwrap();
             print!("{:02}", remaining);
             stdout.flush().unwrap();
             stdout
@@ -198,7 +199,7 @@ pub fn run(timer_duration: u64) {
                         .nth(game.player.position_x as usize)
                         .unwrap()
                     {
-                        stdout.execute(SetForegroundColor(Color::White)).unwrap();
+                        stdout.execute(SetForegroundColor(theme.fg)).unwrap();
                         stdout
                             .execute(MoveTo(
                                 x + game.player.position_x as u16,
@@ -215,7 +216,7 @@ pub fn run(timer_duration: u64) {
                         stats.letter_count += 1;
                     } else {
                         stats.incorrect_letters += 1;
-                        stdout.execute(SetForegroundColor(Color::Red)).unwrap();
+                        stdout.execute(SetForegroundColor(theme.error)).unwrap();
                         stdout
                             .execute(MoveTo(
                                 x + game.player.position_x as u16,
@@ -272,7 +273,7 @@ fn reset_terminal(mut stdout: &std::io::Stdout) {
     stdout.flush().unwrap();
 }
 
-fn print_words(x: u16, y: u16, words: &Vec<String>, mut stdout: &std::io::Stdout) {
+fn print_words(x: u16, y: u16, words: &Vec<String>, mut stdout: &std::io::Stdout, theme: &ThemeColors) {
     stdout.execute(MoveTo(x, y)).unwrap();
     stdout.execute(SetForegroundColor(Color::Grey)).unwrap();
     words.iter().for_each(|word| {

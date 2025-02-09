@@ -31,22 +31,12 @@ fn main() {
                 .long("config")
                 .help("Creates config file if it doesn't exist and opens it")
         )
-            .arg(
-            Arg::new("theme")
-                .short('T')
-                .long("theme")
-                .help("Sets the theme of the game")
-        )
         .get_matches();
 
     let duration_str = matches.value_of("duration").unwrap();
     let duration: u64 = duration_str.parse().expect("Invalid duration value");
 
-    if matches.is_present("theme") {
-        let theme = theme::colors::ThemeColors::new();
-        println!("{:?}", theme);
-        return;
-    }
+    let theme = theme::colors::ThemeColors::new();
 
     if matches.is_present("config") {
         utils::create_config();
@@ -59,5 +49,5 @@ fn main() {
         return;
     }
 
-    terminal::run(duration);
+    terminal::run(duration, theme);
 }
