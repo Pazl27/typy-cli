@@ -3,7 +3,7 @@ use crossterm::event::poll;
 use crossterm::{
     cursor::MoveTo,
     event::{read, Event, KeyCode, KeyEvent},
-    style::{Color, ResetColor, SetForegroundColor},
+    style::{ResetColor, SetForegroundColor},
     terminal::{disable_raw_mode, enable_raw_mode, Clear, ClearType},
     ExecutableCommand,
 };
@@ -18,7 +18,7 @@ use crate::scores::finish_overview;
 use crate::scores::stats::Stats;
 use crate::utils;
 use crate::word_provider;
-use crate::theme::colors::ThemeColors;
+use crate::config::theme::ThemeColors;
 
 struct Player {
     position_x: i32,
@@ -275,7 +275,7 @@ fn reset_terminal(mut stdout: &std::io::Stdout) {
 
 fn print_words(x: u16, y: u16, words: &Vec<String>, mut stdout: &std::io::Stdout, theme: &ThemeColors) {
     stdout.execute(MoveTo(x, y)).unwrap();
-    stdout.execute(SetForegroundColor(Color::Grey)).unwrap();
+    stdout.execute(SetForegroundColor(theme.missing)).unwrap();
     words.iter().for_each(|word| {
         print!("{} ", word);
     });

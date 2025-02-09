@@ -2,7 +2,7 @@ mod scores;
 mod terminal;
 mod utils;
 mod word_provider;
-mod theme;
+mod config;
 
 use clap::{App, Arg};
 
@@ -36,7 +36,7 @@ fn main() {
     let duration_str = matches.value_of("duration").unwrap();
     let duration: u64 = duration_str.parse().expect("Invalid duration value");
 
-    let theme = theme::colors::ThemeColors::new();
+    let theme = config::theme::ThemeColors::new();
 
     if matches.is_present("config") {
         utils::create_config();
