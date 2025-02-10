@@ -14,8 +14,17 @@ pub struct ThemeTable {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(Clone)]
+pub struct GraphTable {
+    pub data: Option<String>,
+    pub title: Option<String>,
+    pub axis: Option<String>,
+}
+
+#[derive(Serialize, Deserialize)]
 pub struct ConfigToml {
     theme: Option<ThemeTable>,
+    graph: Option<GraphTable>,
 }
 
 impl ConfigToml {
@@ -44,10 +53,17 @@ impl ConfigToml {
     pub fn get_theme(&self) -> Option<ThemeTable> {
         self.theme.clone()
     }
+
+    pub fn get_graph(&self) -> Option<GraphTable> {
+        self.graph.clone()
+    }
 }
 
 impl Default for ConfigToml {
     fn default() -> Self {
-        ConfigToml { theme: None }
+        ConfigToml { 
+            theme: None,
+            graph: None,
+        }
     }
 }
