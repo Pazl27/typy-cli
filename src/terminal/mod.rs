@@ -14,11 +14,11 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
 
+use crate::config::theme::ThemeColors;
 use crate::scores::finish_overview;
 use crate::scores::stats::Stats;
 use crate::utils;
 use crate::word_provider;
-use crate::config::theme::ThemeColors;
 
 struct Player {
     position_x: i32,
@@ -134,15 +134,6 @@ pub fn run(timer_duration: u64, theme: ThemeColors) {
                         if game.player.position_x == 0 {
                             continue;
                         }
-                        if game
-                            .get_word_string(game.player.position_y)
-                            .chars()
-                            .nth((game.player.position_x - 1) as usize)
-                            .unwrap()
-                            == ' '
-                        {
-                            continue;
-                        }
                         // check if is at end of line
                         if game.selected_word_index
                             == game
@@ -169,6 +160,15 @@ pub fn run(timer_duration: u64, theme: ThemeColors) {
                                 .unwrap();
                             continue;
                         }
+                        if game
+                            .get_word_string(game.player.position_y)
+                            .chars()
+                            .nth((game.player.position_x - 1) as usize)
+                            .unwrap()
+                            == ' '
+                        {
+                            continue;
+                        }
                         if game.jump_position + 1 == game.player.position_x
                             && game.jump_position != 0
                         {
@@ -193,64 +193,68 @@ pub fn run(timer_duration: u64, theme: ThemeColors) {
                         game.selected_word_index += 1;
                     }
                     // check the typed letter
-                    if c == game
-                        .get_word_string(game.player.position_y)
-                        .chars()
-                        .nth(game.player.position_x as usize)
-                        .unwrap()
+                    if game.player.position_x
+                        < game.get_word_string(game.player.position_y).chars().count() as i32
                     {
-                        stdout.execute(SetForegroundColor(theme.fg)).unwrap();
-                        stdout
-                            .execute(MoveTo(
-                                x + game.player.position_x as u16,
-                                y + game.player.position_y as u16,
-                            ))
-                            .unwrap();
-                        print!(
-                            "{}",
-                            game.get_word_string(game.player.position_y)
-                                .chars()
-                                .nth(game.player.position_x as usize)
-                                .unwrap()
-                        );
-                        stats.letter_count += 1;
-                    } else {
-                        stats.incorrect_letters += 1;
-                        stdout.execute(SetForegroundColor(theme.error)).unwrap();
-                        stdout
-                            .execute(MoveTo(
-                                x + game.player.position_x as u16,
-                                y + game.player.position_y as u16,
-                            ))
-                            .unwrap();
-                        print!(
-                            "{}",
-                            game.get_word_string(game.player.position_y)
-                                .chars()
-                                .nth(game.player.position_x as usize)
-                                .unwrap()
-                        );
-                        stats.letter_count += 1;
-                    }
-                    if game
-                        .get_word_string(game.player.position_y)
-                        .chars()
-                        .nth(game.player.position_x as usize)
-                        .unwrap()
-                        == ' '
-                        && c != ' '
-                    {
-                        game.selected_word_index += 1;
+                        if c == game
+                            .get_word_string(game.player.position_y)
+                            .chars()
+                            .nth(game.player.position_x as usize)
+                            .unwrap()
+                        {
+                            stdout.execute(SetForegroundColor(theme.fg)).unwrap();
+                            stdout
+                                .execute(MoveTo(
+                                    x + game.player.position_x as u16,
+                                    y + game.player.position_y as u16,
+                                ))
+                                .unwrap();
+                            print!(
+                                "{}",
+                                game.get_word_string(game.player.position_y)
+                                    .chars()
+                                    .nth(game.player.position_x as usize)
+                                    .unwrap()
+                            );
+                            stats.letter_count += 1;
+                        } else {
+                            stats.incorrect_letters += 1;
+                            stdout.execute(SetForegroundColor(theme.error)).unwrap();
+                            stdout
+                                .execute(MoveTo(
+                                    x + game.player.position_x as u16,
+                                    y + game.player.position_y as u16,
+                                ))
+                                .unwrap();
+                            print!(
+                                "{}",
+                                game.get_word_string(game.player.position_y)
+                                    .chars()
+                                    .nth(game.player.position_x as usize)
+                                    .unwrap()
+                            );
+                            stats.letter_count += 1;
+                        }
+                        if game
+                            .get_word_string(game.player.position_y)
+                            .chars()
+                            .nth(game.player.position_x as usize)
+                            .unwrap()
+                            == ' '
+                            && c != ' '
+                        {
+                            game.selected_word_index += 1;
+                        }
+                        game.player.position_x += 1;
                     }
                     stdout.flush().unwrap();
-                    game.player.position_x += 1;
                 }
             }
         }
     }
 
     if !game.quit {
-        finish_overview::show_stats(&stdout, stats);
+        finish_overview::show_stats(&stdout, stats, &theme);
     }
 
     reset_terminal(&stdout);
@@ -273,7 +277,13 @@ fn reset_terminal(mut stdout: &std::io::Stdout) {
     stdout.flush().unwrap();
 }
 
-fn print_words(x: u16, y: u16, words: &Vec<String>, mut stdout: &std::io::Stdout, theme: &ThemeColors) {
+fn print_words(
+    x: u16,
+    y: u16,
+    words: &Vec<String>,
+    mut stdout: &std::io::Stdout,
+    theme: &ThemeColors,
+) {
     stdout.execute(MoveTo(x, y)).unwrap();
     stdout.execute(SetForegroundColor(theme.missing)).unwrap();
     words.iter().for_each(|word| {

@@ -7,10 +7,12 @@ use crossterm::ExecutableCommand;
 
 use crate::utils;
 use crate::scores::stats::Stats;
+use crate::config::theme::ThemeColors;
 
 pub fn show_stats(
     mut stdout: &std::io::Stdout,
-    stats: Stats
+    stats: Stats,
+    theme: &ThemeColors
 ) -> Option<()> {
 
     stdout.execute(Clear(ClearType::All)).unwrap();
@@ -18,27 +20,27 @@ pub fn show_stats(
     // Draw infos
     stdout.execute(MoveTo(15, 16)).unwrap();
     stdout
-        .execute(SetForegroundColor(crossterm::style::Color::Grey))
+        .execute(SetForegroundColor(theme.missing))
         .unwrap();
     print!("WPM");
     stdout.execute(MoveTo(15, 17)).unwrap();
     stdout
-        .execute(SetForegroundColor(crossterm::style::Color::Yellow))
+        .execute(SetForegroundColor(theme.accent))
         .unwrap();
     print!("{:02}", stats.wpm() as i32);
     stdout.execute(MoveTo(15, 20)).unwrap();
     stdout
-        .execute(SetForegroundColor(crossterm::style::Color::Grey))
+        .execute(SetForegroundColor(theme.missing))
         .unwrap();
     print!("RAW");
     stdout.execute(MoveTo(15, 21)).unwrap();
     stdout
-        .execute(SetForegroundColor(crossterm::style::Color::Yellow))
+        .execute(SetForegroundColor(theme.accent))
         .unwrap();
     print!("{:02}", stats.raw_wpm() as i32);
     stdout.execute(MoveTo(37, 25)).unwrap();
     stdout
-        .execute(SetForegroundColor(crossterm::style::Color::Yellow))
+        .execute(SetForegroundColor(theme.accent))
         .unwrap();
     print!("ACCURACY: {:.2}%", stats.accuracy());
 
