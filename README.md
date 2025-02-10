@@ -43,6 +43,7 @@ If you prefer to get the newest version and compile it yourself, follow these st
 
 ## Configuration
 Typy allows you to configure the colors (theme) via a TOML file. The configuration file is located at `~/.config/typy/config.toml`. You can also configure Typy using the command line with the `typy -c` option.
+Inside of the configuration file, you can specify the colors for the theme, graph, and cursor style. Also you can specify some default settings.
 
 Here is an example configuration block for the `config.toml` file:
 
@@ -52,8 +53,16 @@ Here is an example configuration block for the `config.toml` file:
 [theme]
 fg = "#ffffff"
 missing = "#3e4451"
-error = "#abb2bf"
+error = "#FB4934"
 accent = "#D3869B"
+
+[graph]
+data = "#8EC07C"
+title = "#458588"
+axis = "#B16286"
+
+[cursor]
+style = "BlinkingBlock" # possible options are: DefaultUserShape|BlinkingBlock|SteadyBlock|BlinkingUnderScore|SteadyUnderScore|BlinkingBar|SteadyBar
 ```
 
 To apply the configuration, you can either edit the `config.toml` file directly or use the `typy -c` command to to open the file in your preferred editor:
