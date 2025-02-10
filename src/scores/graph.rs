@@ -9,14 +9,14 @@ use tui::widgets::Dataset;
 use tui::widgets::{Axis, GraphType};
 use tui::Terminal;
 
-use crate::config::graph::GraphColors;
+use crate::config::graph_colors::Graph;
 
 pub fn draw_graph(data: Vec<i32>) -> Result<(), io::Error> {
     let stdout = io::stdout();
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
-    let graph_colors = GraphColors::new();
+    let graph_colors = Graph::new();
 
     terminal.draw(|f| {
         let size = f.size();

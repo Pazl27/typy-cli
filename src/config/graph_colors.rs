@@ -2,17 +2,17 @@ use tui::style::Color;
 
 use crate::config::toml_parser::ConfigToml;
 
-pub struct GraphColors {
+pub struct Graph {
     pub data: Color,
     pub title: Color,
     pub axis: Color,
 }
 
-impl GraphColors {
+impl Graph {
     pub fn new() -> Self {
         let config_toml = ConfigToml::new();
 
-        let theme_colors: GraphColors = match config_toml.get_graph() {
+        let theme_colors: Graph = match config_toml.get_graph() {
             Some(colors) => {
                 let data = colors
                     .data
@@ -27,17 +27,17 @@ impl GraphColors {
                     .and_then(|c| hex_to_rgb(&c))
                     .unwrap_or(Color::White);
 
-                GraphColors { data, title, axis }
+                Graph { data, title, axis }
             }
-            None => GraphColors::default(),
+            None => Graph::default(),
         };
         theme_colors
     }
 }
 
-impl Default for GraphColors {
+impl Default for Graph {
     fn default() -> Self {
-        GraphColors {
+        Graph {
             data: Color::Yellow,
             title: Color::Red,
             axis: Color::White,

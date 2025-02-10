@@ -14,6 +14,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
 
+use crate::config::cursor_style::CursorKind;
 use crate::config::theme::ThemeColors;
 use crate::scores::finish_overview;
 use crate::scores::stats::Stats;
@@ -263,9 +264,11 @@ pub fn run(timer_duration: u64, theme: ThemeColors) {
 }
 
 fn setup_terminal(mut stdout: &std::io::Stdout) {
+    let cursor_kind = CursorKind::new();
+
     enable_raw_mode().unwrap();
     stdout.execute(Clear(ClearType::All)).unwrap();
-    stdout.execute(SetCursorStyle::SteadyBar).unwrap();
+    stdout.execute(cursor_kind.style).unwrap();
 }
 
 fn reset_terminal(mut stdout: &std::io::Stdout) {

@@ -21,10 +21,18 @@ pub struct GraphTable {
     pub axis: Option<String>,
 }
 
+
+#[derive(Serialize, Deserialize)]
+#[derive(Clone)]
+pub struct CursorTable {
+    pub style: Option<String>,
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct ConfigToml {
     theme: Option<ThemeTable>,
     graph: Option<GraphTable>,
+    cursor: Option<CursorTable>,
 }
 
 impl ConfigToml {
@@ -57,6 +65,10 @@ impl ConfigToml {
     pub fn get_graph(&self) -> Option<GraphTable> {
         self.graph.clone()
     }
+
+    pub fn get_cursor(&self) -> Option<CursorTable> {
+        self.cursor.clone()
+    }
 }
 
 impl Default for ConfigToml {
@@ -64,6 +76,7 @@ impl Default for ConfigToml {
         ConfigToml { 
             theme: None,
             graph: None,
+            cursor: None,
         }
     }
 }
