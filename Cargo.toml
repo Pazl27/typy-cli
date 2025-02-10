@@ -8,3 +8,7 @@ crossterm = "0.28.1"
 clap = "3"
 rand = "0.9"
 tui = "0.19.0"
+dirs = "6.0"
+toml = "0.8.20"
+serde = { version = "1.0", features = ["derive"] }
+
