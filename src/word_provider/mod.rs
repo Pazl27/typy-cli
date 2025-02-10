@@ -1,15 +1,16 @@
 mod finder;
 
 use finder::find;
+use std::io::Error;
 
 const LENGTH: i32 = 70;
 
-pub fn get_words() -> Vec<Vec<String>> {
+pub fn get_words(res: &str) -> Result<Vec<Vec<String>>, Error> {
     let mut words = Vec::new();
     for _ in 0..3 {
-        words.push(find(LENGTH));
+        words.push(find(LENGTH, res)?);
     }
-    words
+    Ok(words)
 }
 
 #[cfg(test)]
@@ -19,17 +20,9 @@ mod tests {
 
     #[test]
     fn test_get_words() {
-        let words = get_words();
+        let words = get_words("resources/words.txt");
 
-        // print them
-        for word in &words {
-            for w in word {
-                print!("{} ", w);
-            }
-            println!();
-        }
-
-        for word in &words {
+        for word in &words.unwrap() {
             let mut length = 0;
             for w in word {
                 length += w.chars().count() as i32;

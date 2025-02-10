@@ -1,13 +1,21 @@
 use std::{
     fs::File,
-    io::{BufRead, BufReader},
+    io::{BufRead, BufReader}, path::PathBuf,
 };
 use dirs::home_dir;
 
 use rand::seq::IndexedRandom;
 
-pub fn find(lenght: i32) -> Vec<String> {
-    let words = read_file().unwrap();
+pub fn find(lenght: i32, res: &str) -> Result<Vec<String>, std::io::Error> {
+    let path = if res.contains("resources") {
+        PathBuf::from(res)
+    } else {
+        let mut home_path = home_dir().ok_or(std::io::Error::new(std::io::ErrorKind::NotFound, "Home directory not found"))?;
+        home_path.push(res);
+        home_path
+    };
+
+    let words = read_file(path.to_str().unwrap())?;
     let mut word = random_word(&words);
 
     let mut fitted_words = Vec::new();
@@ -16,21 +24,18 @@ pub fn find(lenght: i32) -> Vec<String> {
         word = random_word(&words);
     }
 
-    fitted_words
+    Ok(fitted_words)
 }
 
-fn read_file() -> Result<Vec<String>, std::io::Error> {
-    let mut path = home_dir().ok_or(std::io::Error::new(std::io::ErrorKind::NotFound, "Home directory not found"))?;
-    path.push(".local/share/typy/words.txt");
-
-    let file = File::open(path)?;
-    let reader = BufReader::new(file);
-    let mut words = Vec::new();
-    for line in reader.lines() {
-        words.push(line?);
+    fn read_file(path: &str) -> Result<Vec<String>, std::io::Error> {
+        let file = File::open(path)?;
+        let reader = BufReader::new(file);
+        let mut words = Vec::new();
+        for line in reader.lines() {
+            words.push(line?);
+        }
+        Ok(words)
     }
-    Ok(words)
-}
 
 fn random_word(words: &Vec<String>) -> String {
     let mut rng = rand::rng();
@@ -58,7 +63,7 @@ mod tests {
 
     #[test]
     fn test_read_file() {
-        let words = read_file().unwrap();
+        let words = read_file("./resources/words.txt").unwrap();
         assert_eq!(words.len(), 7776);
     }
 

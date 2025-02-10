@@ -61,7 +61,7 @@ impl Game {
 pub fn run(timer_duration: u64, theme: ThemeColors) {
     let mut stdout = stdout();
 
-    let mut game = Game::new(word_provider::get_words());
+    let mut game = Game::new(word_provider::get_words(".local/share/typy/words.txt").unwrap());
 
     let mut stats = Stats::new();
 
