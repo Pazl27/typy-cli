@@ -2,6 +2,7 @@ use std::{
     fs::File,
     io::{BufRead, BufReader},
 };
+use dirs::home_dir;
 
 use rand::seq::IndexedRandom;
 
@@ -19,7 +20,10 @@ pub fn find(lenght: i32) -> Vec<String> {
 }
 
 fn read_file() -> Result<Vec<String>, std::io::Error> {
-    let file = File::open("resources/words.txt")?;
+    let mut path = home_dir().ok_or(std::io::Error::new(std::io::ErrorKind::NotFound, "Home directory not found"))?;
+    path.push(".local/share/typy/words.txt");
+
+    let file = File::open(path)?;
     let reader = BufReader::new(file);
     let mut words = Vec::new();
     for line in reader.lines() {
