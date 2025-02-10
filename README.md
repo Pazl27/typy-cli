@@ -1,4 +1,9 @@
-# Typy
+<p align="center">
+  ╱        ╲╱    ╱   ╲╱        ╲╱    ╱   ╲<br>
+  ╱        _╱         ╱         ╱         ╱<br>
+  ╱       ╱ ╲__     ╱╱╱      __╱╲__     ╱╱ <br>
+  ╲_____╱╱    ╲____╱╱╲╲_____╱     ╲____╱╱<br>
+</p>
 
 ## Table of contents
 - [Overview](#overview)
