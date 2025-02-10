@@ -11,6 +11,8 @@
 
 
 ## Table of contents
+![Description of the GIF](./docs/assets/demo.gif)
+
 - [Overview](#overview)
 - [Installation](#installation)
 - [Configuration](#configuration)
