@@ -1,6 +1,6 @@
 use crossterm::cursor::SetCursorStyle;
 
-use crate::config::toml_parser::ConfigToml;
+use crate::config::toml_parser::get_config;
 use crate::config::toml_parser::CursorTable;
 
 pub struct CursorKind {
@@ -9,9 +9,8 @@ pub struct CursorKind {
 
 impl CursorKind {
     pub fn new() -> Self {
-        let config_toml = ConfigToml::new();
 
-        let cursor_table: CursorTable = config_toml.get_cursor().unwrap_or(CursorTable {
+        let cursor_table: CursorTable = get_config().lock().unwrap().get_cursor().unwrap_or(CursorTable {
             style: Some("DefaultUserShape".to_owned())
         });
 

@@ -1,6 +1,6 @@
 use crossterm::style::Color;
 
-use crate::config::toml_parser::ConfigToml;
+use crate::config::toml_parser::get_config;
 
 #[derive(Debug)]
 pub struct ThemeColors {
@@ -12,9 +12,8 @@ pub struct ThemeColors {
 
 impl ThemeColors {
     pub fn new() -> Self {
-        let config_toml = ConfigToml::new();
 
-        let theme_colors: ThemeColors = match config_toml.get_theme() {
+        let theme_colors: ThemeColors = match get_config().lock().unwrap().get_theme() {
             Some(colors) => {
                 let fg = colors
                     .fg

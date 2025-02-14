@@ -1,6 +1,6 @@
 use tui::style::Color;
 
-use crate::config::toml_parser::ConfigToml;
+use crate::config::toml_parser::get_config;
 
 pub struct Graph {
     pub data: Color,
@@ -10,9 +10,8 @@ pub struct Graph {
 
 impl Graph {
     pub fn new() -> Self {
-        let config_toml = ConfigToml::new();
 
-        let theme_colors: Graph = match config_toml.get_graph() {
+        let theme_colors: Graph = match get_config().lock().unwrap().get_graph() {
             Some(colors) => {
                 let data = colors
                     .data
