@@ -57,7 +57,7 @@ fn check_if_fits(word: &String, fitted_words: &mut Vec<String>, lenght: i32) -> 
 }
 
 #[cfg(test)]
-mod tests {
+mod finder_tests {
 
     use super::*;
 

@@ -83,3 +83,59 @@ impl Mode {
         }
     }
 }
+
+#[cfg(test)]
+mod mode_tests {
+    use super::*;
+
+    #[test]
+    fn test_from_str_valid_mode() {
+        let mode = Mode::from_str(vec!["normal", "uppercase", "punctuation"]).unwrap();
+        assert_eq!(mode.modes, vec![ModeType::Normal]);
+    }
+
+    #[test]
+    fn test_from_str_valid_modes() {
+        let mode = Mode::from_str(vec!["uppercase", "punctuation"]).unwrap();
+        assert_eq!(mode.modes, vec![ModeType::Uppercase, ModeType::Punctuation]);
+    }
+
+    #[test]
+    fn test_from_str_invalid_mode() {
+        let mode = Mode::from_str(vec!["invalid"]);
+        assert!(mode.is_err());
+    }
+
+    #[test]
+    fn test_from_str_default_to_normal() {
+        let mode = Mode::from_str(vec![]).unwrap();
+        assert_eq!(mode.modes, vec![ModeType::Normal]);
+    }
+
+    #[test]
+    fn test_add_duration() {
+        let mode = Mode::from_str(vec!["normal"]).unwrap().add_duration(10);
+        assert_eq!(mode.modes, vec![ModeType::Normal]);
+        assert_eq!(mode.duration, 10);
+    }
+
+    #[test]
+    fn test_transform_uppercase() {
+        let mode = Mode::from_str(vec!["uppercase"]).unwrap();
+        let mut list = vec![vec!["hello".to_string(), "world".to_string()]];
+        mode.transform(&mut list);
+        // Since the transformation is random, we can't assert exact values, but we can check the structure
+        assert_eq!(list.len(), 1);
+        assert_eq!(list[0].len(), 2);
+    }
+
+    #[test]
+    fn test_transform_punctuation() {
+        let mode = Mode::from_str(vec!["punctuation"]).unwrap();
+        let mut list = vec![vec!["hello".to_string(), "world".to_string()]];
+        mode.transform(&mut list);
+        // Since the transformation is random, we can't assert exact values, but we can check the structure
+        assert_eq!(list.len(), 1);
+        assert_eq!(list[0].len(), 2);
+    }
+}

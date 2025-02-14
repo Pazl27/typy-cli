@@ -56,7 +56,7 @@ fn hex_to_rgb(hex: &str) -> Option<Color> {
 }
 
 #[cfg(test)]
-mod tests {
+mod graph_tests {
     use super::*;
 
     #[test]
