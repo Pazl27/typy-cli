@@ -71,6 +71,8 @@ fn main() {
         process::exit(1);
     }).add_duration(duration);
 
+    let settings = config::mode_settings::ModeSettings::new();
+    println!("{:?}", settings);
 
-    terminal::run(mode, theme);
+    // terminal::run(mode, theme);
 }

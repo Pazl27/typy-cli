@@ -33,8 +33,8 @@ pub struct CursorTable {
 #[derive(Clone)]
 pub struct ModesTable {
     pub default_mode: Option<String>,
-    pub uppercase_difficulty: Option<String>,
-    pub punctuation_difficulty: Option<String>,
+    pub uppercase_chance: Option<String>,
+    pub punctuation_chance: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]

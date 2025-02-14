@@ -1,16 +1,30 @@
 use rand::Rng;
+use std::str::FromStr;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum ModeType {
     Normal,
     Uppercase,
     Punctuation,
 }
 
+impl FromStr for ModeType {
+    type Err = ();
+
+    fn from_str(input: &str) -> Result<ModeType, Self::Err> {
+        match input {
+            "uppercase" => Ok(ModeType::Uppercase),
+            "punctuation" => Ok(ModeType::Punctuation),
+            "normal" => Ok(ModeType::Normal),
+            _ => Err(()),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Mode {
     modes: Vec<ModeType>,
-    pub duration: u64
+    pub duration: u64,
 }
 
 impl Mode {
@@ -70,15 +84,15 @@ impl Mode {
                         if len > 1 {
                             for i in 0..len - 1 {
                                 if rng.random_bool(0.2) {
-                                    let punctuation = punctuations[rng.random_range(0..punctuations.len())];
+                                    let punctuation =
+                                        punctuations[rng.random_range(0..punctuations.len())];
                                     sublist[i].push_str(punctuation);
                                 }
                             }
                         }
                     }
                 }
-                ModeType::Normal => {
-                }
+                ModeType::Normal => {}
             }
         }
     }
