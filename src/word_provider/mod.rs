@@ -15,7 +15,7 @@ pub fn get_words(res: &str) -> Result<Vec<Vec<String>>, Error> {
 
 #[cfg(test)]
 
-mod tests {
+mod word_provider_tests {
     use super::*;
 
     #[test]

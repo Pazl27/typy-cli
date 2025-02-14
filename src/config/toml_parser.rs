@@ -3,6 +3,8 @@ use toml;
 use serde::{Deserialize, Serialize};
 use dirs::home_dir;
 use std::path::PathBuf;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
 
 #[derive(Serialize, Deserialize)]
 #[derive(Clone)]
@@ -21,7 +23,6 @@ pub struct GraphTable {
     pub axis: Option<String>,
 }
 
-
 #[derive(Serialize, Deserialize)]
 #[derive(Clone)]
 pub struct CursorTable {
@@ -29,10 +30,19 @@ pub struct CursorTable {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(Clone)]
+pub struct ModesTable {
+    pub default_mode: Option<String>,
+    pub uppercase_chance: Option<String>,
+    pub punctuation_chance: Option<String>,
+}
+
+#[derive(Serialize, Deserialize)]
 pub struct ConfigToml {
     theme: Option<ThemeTable>,
     graph: Option<GraphTable>,
     cursor: Option<CursorTable>,
+    modes: Option<ModesTable>,
 }
 
 impl ConfigToml {
@@ -69,6 +79,10 @@ impl ConfigToml {
     pub fn get_cursor(&self) -> Option<CursorTable> {
         self.cursor.clone()
     }
+
+    pub fn get_modes(&self) -> Option<ModesTable> {
+        self.modes.clone()
+    }
 }
 
 impl Default for ConfigToml {
@@ -77,6 +91,18 @@ impl Default for ConfigToml {
             theme: None,
             graph: None,
             cursor: None,
+            modes: None,
         }
     }
 }
+
+// Declare the static instance of ConfigToml using lazy_static
+lazy_static! {
+    static ref CONFIG: Mutex<ConfigToml> = Mutex::new(ConfigToml::new());
+}
+
+// Helper function to access the static CONFIG
+pub fn get_config() -> &'static Mutex<ConfigToml> {
+    &CONFIG
+}
+

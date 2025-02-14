@@ -20,6 +20,7 @@ use crate::scores::finish_overview;
 use crate::scores::stats::Stats;
 use crate::utils;
 use crate::word_provider;
+use crate::mode::Mode;
 
 struct Player {
     position_x: i32,
@@ -59,10 +60,12 @@ impl Game {
     }
 }
 
-pub fn run(timer_duration: u64, theme: ThemeColors) {
+pub fn run(mode: Mode, theme: ThemeColors) {
     let mut stdout = stdout();
 
     let mut game = Game::new(word_provider::get_words(".local/share/typy/words.txt").unwrap());
+
+    mode.transform(&mut game.list);
 
     let mut stats = Stats::new();
 
@@ -77,12 +80,12 @@ pub fn run(timer_duration: u64, theme: ThemeColors) {
 
     let timer_expired = Arc::new(AtomicBool::new(false));
     let timer_expired_clone = Arc::clone(&timer_expired);
-    let remaining_time = Arc::new(Mutex::new(timer_duration));
+    let remaining_time = Arc::new(Mutex::new(mode.duration));
     let remaining_time_clone = Arc::clone(&remaining_time);
     let mut remaining_prev: u64 = 0;
 
     let timer_thread = thread::spawn(move || {
-        start_timer(timer_duration, timer_expired_clone, remaining_time_clone);
+        start_timer(mode.duration, timer_expired_clone, remaining_time_clone);
     });
 
     loop {
