@@ -29,10 +29,12 @@ impl ModeSettings {
                 let uppercase_chance = settings
                     .uppercase_chance
                     .and_then(|c| c.parse::<f32>().ok())
+                    .map(|c| c.clamp(0.0, 1.0))
                     .unwrap_or(0.2);
                 let punctuation_chance = settings
                     .punctuation_chance
                     .and_then(|c| c.parse::<f32>().ok())
+                    .map(|c| c.clamp(0.0, 1.0))
                     .unwrap_or(0.2);
 
                 ModeSettings { default_modes, uppercase_chance, punctuation_chance }

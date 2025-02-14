@@ -1,6 +1,8 @@
 use rand::Rng;
 use std::str::FromStr;
 
+use crate::config::mode_settings::ModeSettings;
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum ModeType {
     Normal,
@@ -25,11 +27,13 @@ impl FromStr for ModeType {
 pub struct Mode {
     modes: Vec<ModeType>,
     pub duration: u64,
+    settings: ModeSettings
 }
 
 impl Mode {
     pub fn from_str(mode_strs: Vec<&str>) -> Result<Self, String> {
         let mut modes = Vec::new();
+        let settings = ModeSettings::new();
 
         for mode_str in mode_strs {
             match mode_str {
@@ -42,7 +46,9 @@ impl Mode {
 
         // If no specific mode is provided, default to normal
         modes.is_empty().then(|| {
-            modes.push(ModeType::Normal);
+            settings.default_modes.iter().for_each(|m| {
+                modes.push(m.clone());
+            });
         });
 
         modes.contains(&ModeType::Normal).then(|| {
@@ -50,7 +56,7 @@ impl Mode {
             modes.push(ModeType::Normal);
         });
 
-        Ok(Mode { modes, duration: 0 })
+        Ok(Mode { modes, duration: 0, settings })
     }
     pub fn add_duration(mut self, duration: u64) -> Self {
         self.duration = duration;
@@ -68,7 +74,7 @@ impl Mode {
                         for item in sublist.iter_mut() {
                             let mut new_item = String::new();
                             for c in item.chars() {
-                                if rng.random_bool(0.2) {
+                                if rng.random_bool(self.settings.uppercase_chance.into()) {
                                     new_item.push(c.to_uppercase().next().unwrap());
                                 } else {
                                     new_item.push(c);
@@ -83,7 +89,7 @@ impl Mode {
                         let len = sublist.len();
                         if len > 1 {
                             for i in 0..len - 1 {
-                                if rng.random_bool(0.2) {
+                                if rng.random_bool(self.settings.punctuation_chance.into()) {
                                     let punctuation =
                                         punctuations[rng.random_range(0..punctuations.len())];
                                     sublist[i].push_str(punctuation);
@@ -118,12 +124,6 @@ mod mode_tests {
     fn test_from_str_invalid_mode() {
         let mode = Mode::from_str(vec!["invalid"]);
         assert!(mode.is_err());
-    }
-
-    #[test]
-    fn test_from_str_default_to_normal() {
-        let mode = Mode::from_str(vec![]).unwrap();
-        assert_eq!(mode.modes, vec![ModeType::Normal]);
     }
 
     #[test]

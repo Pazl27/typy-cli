@@ -63,7 +63,7 @@ fn main() {
 
     let mut mode_strs: Vec<&str> = matches.values_of("mode").unwrap_or_default().collect();
     mode_strs.is_empty().then(|| {
-        mode_strs.push("normal");
+        mode_strs.clear()
     });
 
     let mode = Mode::from_str(mode_strs).unwrap_or_else(|err| {
@@ -71,8 +71,5 @@ fn main() {
         process::exit(1);
     }).add_duration(duration);
 
-    let settings = config::mode_settings::ModeSettings::new();
-    println!("{:?}", settings);
-
-    // terminal::run(mode, theme);
+    terminal::run(mode, theme);
 }
