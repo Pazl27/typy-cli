@@ -72,5 +72,5 @@ fn main() {
     }).add_duration(duration);
 
 
-    // terminal::run(duration, theme);
+    terminal::run(mode, theme);
 }
