@@ -14,7 +14,7 @@ fn main() {
     let matches = App::new("Typy CLI")
         .version("0.1.0")
         .author("Pazl")
-        .about("Monkeytype clone in the terminal")
+        .about("Monkeytype clone in the terminal for more information check: https://github.com/Pazl27/typy-cli")
         .arg(
             Arg::new("duration")
                 .short('t')
