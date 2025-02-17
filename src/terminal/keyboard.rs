@@ -117,54 +117,83 @@ fn handle_chars(
     game: &mut Game,
     stats: &mut Stats,
     theme: &ThemeColors,
+    stdout: &std::io::Stdout,
+    c: char,
+    x: u16,
+    y: u16,
+) -> Result<()> {
+    let expected_char = game
+        .get_word_string(game.player.position_y)
+        .chars()
+        .nth(game.player.position_x as usize)
+        .context("Failed to get character from word")?;
+
+    if c == expected_char {
+        handle_correct_char(game, theme, stdout, c, x, y)?;
+    } else {
+        handle_incorrect_char(game, theme, stdout, expected_char, x, y)?;
+    }
+
+    update_game_state(game, stats, c)?;
+
+    Ok(())
+}
+
+fn handle_correct_char(
+    game: &Game,
+    theme: &ThemeColors,
     mut stdout: &std::io::Stdout,
     c: char,
     x: u16,
     y: u16,
 ) -> Result<()> {
+    stdout
+        .execute(SetForegroundColor(theme.fg))
+        .context("Failed to set foreground color")?;
+    stdout
+        .execute(MoveTo(
+            x + game.player.position_x as u16,
+            y + game.player.position_y as u16,
+        ))
+        .context("Failed to move cursor")?;
+    print!("{}", c);
+    Ok(())
+}
+
+fn handle_incorrect_char(
+    game: &Game,
+    theme: &ThemeColors,
+    mut stdout: &std::io::Stdout,
+    c: char,
+    x: u16,
+    y: u16,
+) -> Result<()> {
+    stdout
+        .execute(SetForegroundColor(theme.error))
+        .context("Failed to set foreground color")?;
+    stdout
+        .execute(MoveTo(
+            x + game.player.position_x as u16,
+            y + game.player.position_y as u16,
+        ))
+        .context("Failed to move cursor")?;
+    print!("{}", c);
+    Ok(())
+}
+
+fn update_game_state(game: &mut Game, stats: &mut Stats, c: char) -> Result<()> {
     if c == game
         .get_word_string(game.player.position_y)
         .chars()
         .nth(game.player.position_x as usize)
         .context("Failed to get character from word")?
     {
-        stdout
-            .execute(SetForegroundColor(theme.fg))
-            .context("Failed to set foreground color")?;
-        stdout
-            .execute(MoveTo(
-                x + game.player.position_x as u16,
-                y + game.player.position_y as u16,
-            ))
-            .context("Failed to move cursor")?;
-        print!(
-            "{}",
-            game.get_word_string(game.player.position_y)
-                .chars()
-                .nth(game.player.position_x as usize)
-                .context("Failed to get character from word")?
-        );
         stats.letter_count += 1;
     } else {
         stats.incorrect_letters += 1;
-        stdout
-            .execute(SetForegroundColor(theme.error))
-            .context("Failed to set foreground color")?;
-        stdout
-            .execute(MoveTo(
-                x + game.player.position_x as u16,
-                y + game.player.position_y as u16,
-            ))
-            .context("Failed to move cursor")?;
-        print!(
-            "{}",
-            game.get_word_string(game.player.position_y)
-                .chars()
-                .nth(game.player.position_x as usize)
-                .context("Failed to get character from word")?
-        );
         stats.letter_count += 1;
     }
+
     if game
         .get_word_string(game.player.position_y)
         .chars()
