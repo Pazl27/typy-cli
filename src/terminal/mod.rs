@@ -1,3 +1,4 @@
+use anyhow::{Context, Result};
 use crossterm::cursor::SetCursorStyle;
 use crossterm::event::poll;
 use crossterm::{
@@ -10,17 +11,17 @@ use crossterm::{
 use std::io::stdout;
 use std::io::Write;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant};
 
 use crate::config::cursor_style::CursorKind;
 use crate::config::theme::ThemeColors;
+use crate::mode::Mode;
 use crate::scores::finish_overview;
 use crate::scores::stats::Stats;
 use crate::utils;
 use crate::word_provider;
-use crate::mode::Mode;
 
 struct Player {
     position_x: i32,
@@ -60,22 +61,37 @@ impl Game {
     }
 }
 
-pub fn run(mode: Mode, theme: ThemeColors) {
+pub fn run(mode: Mode, theme: ThemeColors) -> Result<()> {
     let mut stdout = stdout();
 
-    let mut game = Game::new(word_provider::get_words(".local/share/typy/words.txt").unwrap());
+    let mut game = Game::new(
+        word_provider::get_words(".local/share/typy/words.txt")
+            .context("Failed to get words from file")?,
+    );
 
     mode.transform(&mut game.list);
 
     let mut stats = Stats::new();
 
-    setup_terminal(&stdout);
+    setup_terminal(&stdout).context("Failed to setup terminal")?;
 
-    let (x, y) = utils::calc_size();
+    let (x, y) = utils::calc_size().context("Failed to calculate terminal size")?;
 
     for i in 0..game.list.len() {
-        print_words(x, y + i as u16, &game.list.get(i).unwrap(), &stdout, &theme);
-        stdout.execute(MoveTo(x, y as u16)).unwrap();
+        print_words(
+            x,
+            y + i as u16,
+            &game
+                .list
+                .get(i)
+                .context("Failed to get word from list")?
+                .to_vec(),
+            &stdout,
+            &theme,
+        )?;
+        stdout
+            .execute(MoveTo(x, y as u16))
+            .context("Failed to move cursor")?;
     }
 
     let timer_expired = Arc::new(AtomicBool::new(false));
@@ -84,8 +100,13 @@ pub fn run(mode: Mode, theme: ThemeColors) {
     let remaining_time_clone = Arc::clone(&remaining_time);
     let mut remaining_prev: u64 = 0;
 
+
+    let (tx, _) = mpsc::channel();
+
     let timer_thread = thread::spawn(move || {
-        start_timer(mode.duration, timer_expired_clone, remaining_time_clone);
+        if let Err(e) = start_timer(mode.duration, timer_expired_clone, remaining_time_clone) {
+            tx.send(e).expect("Failed to send error from timer thread");
+        }
     });
 
     loop {
@@ -98,34 +119,40 @@ pub fn run(mode: Mode, theme: ThemeColors) {
                 x + game.player.position_x as u16,
                 y + game.player.position_y as u16,
             ))
-            .unwrap();
+            .context("Failed to move cursor")?;
 
         if timer_expired.load(Ordering::Relaxed) {
             break;
         }
 
         {
-            let remaining = *remaining_time.lock().unwrap();
-            stdout.execute(MoveTo(x, y - 2)).unwrap();
-            stdout.execute(SetForegroundColor(theme.accent)).unwrap();
+            let remaining = *remaining_time
+                .lock()
+                .map_err(|e| anyhow::anyhow!("Failed to lock remaining time: {}", e))?;
+            stdout
+                .execute(MoveTo(x, y - 2))
+                .context("Failed to move cursor")?;
+            stdout
+                .execute(SetForegroundColor(theme.accent))
+                .context("Failed to set foreground color")?;
             print!("{:02}", remaining);
-            stdout.flush().unwrap();
+            stdout.flush().context("Failed to flush stdout")?;
             stdout
                 .execute(MoveTo(
                     x + game.player.position_x as u16,
                     y + game.player.position_y as u16,
                 ))
-                .unwrap();
+                .context("Failed to move cursor")?;
             if remaining != remaining_prev {
                 stats.add_letters();
             }
             remaining_prev = remaining;
         }
 
-        if poll(Duration::from_millis(5)).unwrap() {
+        if poll(Duration::from_millis(5)).context("Failed to poll for events")? {
             if let Ok(Event::Key(KeyEvent {
                 code, modifiers, ..
-            })) = read()
+            })) = read().context("Failed to read event")
             {
                 if let Some(()) = utils::close_typy(&code, &modifiers) {
                     timer_expired.store(true, Ordering::Relaxed);
@@ -143,7 +170,7 @@ pub fn run(mode: Mode, theme: ThemeColors) {
                             == game
                                 .list
                                 .get(game.player.position_y as usize)
-                                .unwrap()
+                                .context("Failed to get word from list")?
                                 .len() as i32
                                 - 1
                         {
@@ -161,14 +188,14 @@ pub fn run(mode: Mode, theme: ThemeColors) {
                                     x + game.player.position_x as u16,
                                     y + game.player.position_y as u16,
                                 ))
-                                .unwrap();
+                                .context("Failed to move cursor")?;
                             continue;
                         }
                         if game
                             .get_word_string(game.player.position_y)
                             .chars()
                             .nth((game.player.position_x - 1) as usize)
-                            .unwrap()
+                            .context("Failed to get character from word")?
                             == ' '
                         {
                             continue;
@@ -181,7 +208,7 @@ pub fn run(mode: Mode, theme: ThemeColors) {
                         game.jump_position = game
                             .list
                             .get(game.player.position_y as usize)
-                            .unwrap()
+                            .context("Failed to get word from list")?
                             .iter()
                             .take(game.selected_word_index as usize + 1)
                             .map(|word| word.chars().count() + 1)
@@ -193,7 +220,7 @@ pub fn run(mode: Mode, theme: ThemeColors) {
                                 x + game.player.position_x as u16,
                                 y + game.player.position_y as u16,
                             ))
-                            .unwrap();
+                            .context("Failed to move cursor")?;
                         game.selected_word_index += 1;
                     }
                     // check the typed letter
@@ -204,38 +231,42 @@ pub fn run(mode: Mode, theme: ThemeColors) {
                             .get_word_string(game.player.position_y)
                             .chars()
                             .nth(game.player.position_x as usize)
-                            .unwrap()
+                            .context("Failed to get character from word")?
                         {
-                            stdout.execute(SetForegroundColor(theme.fg)).unwrap();
+                            stdout
+                                .execute(SetForegroundColor(theme.fg))
+                                .context("Failed to set foreground color")?;
                             stdout
                                 .execute(MoveTo(
                                     x + game.player.position_x as u16,
                                     y + game.player.position_y as u16,
                                 ))
-                                .unwrap();
+                                .context("Failed to move cursor")?;
                             print!(
                                 "{}",
                                 game.get_word_string(game.player.position_y)
                                     .chars()
                                     .nth(game.player.position_x as usize)
-                                    .unwrap()
+                                    .context("Failed to get character from word")?
                             );
                             stats.letter_count += 1;
                         } else {
                             stats.incorrect_letters += 1;
-                            stdout.execute(SetForegroundColor(theme.error)).unwrap();
+                            stdout
+                                .execute(SetForegroundColor(theme.error))
+                                .context("Failed to set foreground color")?;
                             stdout
                                 .execute(MoveTo(
                                     x + game.player.position_x as u16,
                                     y + game.player.position_y as u16,
                                 ))
-                                .unwrap();
+                                .context("Failed to move cursor")?;
                             print!(
                                 "{}",
                                 game.get_word_string(game.player.position_y)
                                     .chars()
                                     .nth(game.player.position_x as usize)
-                                    .unwrap()
+                                    .context("Failed to get character from word")?
                             );
                             stats.letter_count += 1;
                         }
@@ -243,7 +274,7 @@ pub fn run(mode: Mode, theme: ThemeColors) {
                             .get_word_string(game.player.position_y)
                             .chars()
                             .nth(game.player.position_x as usize)
-                            .unwrap()
+                            .context("Failed to get character from word")?
                             == ' '
                             && c != ' '
                         {
@@ -251,36 +282,43 @@ pub fn run(mode: Mode, theme: ThemeColors) {
                         }
                         game.player.position_x += 1;
                     }
-                    stdout.flush().unwrap();
+                    stdout.flush().context("Failed to flush stdout")?;
                 }
             }
         }
     }
 
     if !game.quit {
-        finish_overview::show_stats(&stdout, stats, &theme);
+        finish_overview::show_stats(&stdout, stats, &theme).context("Failed to show stats")?;
     }
 
-    reset_terminal(&stdout);
+    reset_terminal(&stdout).context("Failed to reset terminal")?;
     timer_expired.store(true, Ordering::Relaxed);
-    timer_thread.join().unwrap();
+    timer_thread
+        .join()
+        .map_err(|e| anyhow::anyhow!("Failed to join timer thread: {:?}", e))?;
+    Ok(())
 }
 
-fn setup_terminal(mut stdout: &std::io::Stdout) {
+fn setup_terminal(mut stdout: &std::io::Stdout) -> Result<()> {
     let cursor_kind = CursorKind::new();
 
-    enable_raw_mode().unwrap();
-    stdout.execute(Clear(ClearType::All)).unwrap();
-    stdout.execute(cursor_kind.style).unwrap();
+    enable_raw_mode()?;
+    stdout.execute(Clear(ClearType::All))?;
+    stdout.execute(cursor_kind.style)?;
+
+    Ok(())
 }
 
-fn reset_terminal(mut stdout: &std::io::Stdout) {
-    disable_raw_mode().unwrap();
-    stdout.execute(ResetColor).unwrap();
-    stdout.execute(Clear(ClearType::All)).unwrap();
-    stdout.execute(MoveTo(0, 0)).unwrap();
-    stdout.execute(SetCursorStyle::DefaultUserShape).unwrap();
-    stdout.flush().unwrap();
+fn reset_terminal(mut stdout: &std::io::Stdout) -> Result<()> {
+    disable_raw_mode()?;
+    stdout.execute(ResetColor)?;
+    stdout.execute(Clear(ClearType::All))?;
+    stdout.execute(MoveTo(0, 0))?;
+    stdout.execute(SetCursorStyle::DefaultUserShape)?;
+    stdout.flush()?;
+
+    Ok(())
 }
 
 fn print_words(
@@ -289,15 +327,25 @@ fn print_words(
     words: &Vec<String>,
     mut stdout: &std::io::Stdout,
     theme: &ThemeColors,
-) {
-    stdout.execute(MoveTo(x, y)).unwrap();
-    stdout.execute(SetForegroundColor(theme.missing)).unwrap();
+) -> Result<()> {
+    stdout
+        .execute(MoveTo(x, y))
+        .context("Failed to move cursor")?;
+    stdout
+        .execute(SetForegroundColor(theme.missing))
+        .context("Failed to set foreground color")?;
     words.iter().for_each(|word| {
         print!("{} ", word);
     });
+
+    Ok(())
 }
 
-fn start_timer(duration: u64, timer_expired: Arc<AtomicBool>, remaining_time: Arc<Mutex<u64>>) {
+fn start_timer(
+    duration: u64,
+    timer_expired: Arc<AtomicBool>,
+    remaining_time: Arc<Mutex<u64>>,
+) -> Result<()> {
     let start = Instant::now();
     while start.elapsed().as_secs() < duration {
         if timer_expired.load(Ordering::Relaxed) {
@@ -305,10 +353,14 @@ fn start_timer(duration: u64, timer_expired: Arc<AtomicBool>, remaining_time: Ar
         }
         let remaining = duration - start.elapsed().as_secs();
         {
-            let mut remaining_time = remaining_time.lock().unwrap();
+            let mut remaining_time = remaining_time
+                .lock()
+                .map_err(|e| anyhow::anyhow!("Failed to lock remaining time: {}", e))?;
             *remaining_time = remaining;
         }
         thread::sleep(Duration::from_secs(1));
     }
     timer_expired.store(true, Ordering::Relaxed);
+
+    Ok(())
 }

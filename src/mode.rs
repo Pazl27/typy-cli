@@ -1,3 +1,4 @@
+use anyhow::Result;
 use rand::Rng;
 use std::str::FromStr;
 
@@ -27,11 +28,11 @@ impl FromStr for ModeType {
 pub struct Mode {
     modes: Vec<ModeType>,
     pub duration: u64,
-    settings: ModeSettings
+    settings: ModeSettings,
 }
 
 impl Mode {
-    pub fn from_str(mode_strs: Vec<&str>) -> Result<Self, String> {
+    pub fn from_str(mode_strs: Vec<&str>) -> Result<Self> {
         let mut modes = Vec::new();
         let settings = ModeSettings::new();
 
@@ -40,7 +41,7 @@ impl Mode {
                 "normal" => modes.push(ModeType::Normal),
                 "uppercase" => modes.push(ModeType::Uppercase),
                 "punctuation" => modes.push(ModeType::Punctuation),
-                _ => return Err(format!("Invalid mode: {}", mode_str)),
+                _ => return Err(anyhow::anyhow!("Invalid mode: {}", mode_str)),
             }
         }
 
@@ -58,6 +59,7 @@ impl Mode {
 
         Ok(Mode { modes, duration: 0, settings })
     }
+
     pub fn add_duration(mut self, duration: u64) -> Self {
         self.duration = duration;
         self
