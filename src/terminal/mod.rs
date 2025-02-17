@@ -4,7 +4,8 @@ use anyhow::{Context, Result};
 use crossterm::cursor::SetCursorStyle;
 use crossterm::event::poll;
 use crossterm::{
-    cursor::MoveTo, event::{read, Event, KeyEvent},
+    cursor::MoveTo,
+    event::{read, Event, KeyEvent},
     style::{ResetColor, SetForegroundColor},
     terminal::{disable_raw_mode, enable_raw_mode, Clear, ClearType},
     ExecutableCommand,
