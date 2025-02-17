@@ -44,17 +44,41 @@ pub fn handle_input(
     Ok(InputAction::None)
 }
 
-fn handle_space(
+fn handle_space(game: &mut Game, stdout: &std::io::Stdout, x: u16, y: u16) -> Result<InputAction> {
+    if let InputAction::Continue = handle_start_of_line(game)? {
+        return Ok(InputAction::Continue);
+    }
+
+    if let InputAction::Continue = handle_end_of_line(game, stdout, x, y)? {
+        return Ok(InputAction::Continue);
+    }
+
+    if let InputAction::Continue = handle_space_in_word(game)? {
+        return Ok(InputAction::Continue);
+    }
+
+    if game.jump_position + 1 == game.player.position_x && game.jump_position != 0 {
+        return Ok(InputAction::Continue);
+    }
+
+    handle_jump_position(game, stdout, x, y)?;
+
+    Ok(InputAction::None)
+}
+
+fn handle_start_of_line(game: &Game) -> Result<InputAction> {
+    if game.player.position_x == 0 {
+        return Ok(InputAction::Continue);
+    }
+    Ok(InputAction::None)
+}
+
+fn handle_end_of_line(
     game: &mut Game,
     mut stdout: &std::io::Stdout,
     x: u16,
     y: u16,
 ) -> Result<InputAction> {
-    // not able to press space at the start of a line
-    if game.player.position_x == 0 {
-        return Ok(InputAction::Continue);
-    }
-    // check if is at end of line
     if game.selected_word_index
         == game
             .list
@@ -80,6 +104,10 @@ fn handle_space(
             .context("Failed to move cursor")?;
         return Ok(InputAction::Continue);
     }
+    Ok(InputAction::None)
+}
+
+fn handle_space_in_word(game: &Game) -> Result<InputAction> {
     if game
         .get_word_string(game.player.position_y)
         .chars()
@@ -89,9 +117,15 @@ fn handle_space(
     {
         return Ok(InputAction::Continue);
     }
-    if game.jump_position + 1 == game.player.position_x && game.jump_position != 0 {
-        return Ok(InputAction::Continue);
-    }
+    Ok(InputAction::None)
+}
+
+fn handle_jump_position(
+    game: &mut Game,
+    mut stdout: &std::io::Stdout,
+    x: u16,
+    y: u16,
+) -> Result<()> {
     game.jump_position = game
         .list
         .get(game.player.position_y as usize)
@@ -109,8 +143,7 @@ fn handle_space(
         ))
         .context("Failed to move cursor")?;
     game.selected_word_index += 1;
-
-    Ok(InputAction::None)
+    Ok(())
 }
 
 fn handle_chars(
