@@ -1,12 +1,13 @@
-<p>
-  <pre align="center">
+<div align="center">
+  <pre>
 ,--------.,--.   ,--.,------.,--.   ,--.  
 '--.  .--' \  `.'  / |  .--. '\  `.'  /  
    |  |     '.    /  |  '--' | '.    /   
    |  |       |  |   |  | --'    |  |    
    `--'       `--'   `--'        `--'    
   </pre>
-</p>
+</div>
+
 
 ## Overview
 ![Description of the GIF](./doc/assets/demo.gif)
