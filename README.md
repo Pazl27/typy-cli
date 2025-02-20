@@ -1,12 +1,21 @@
-# Typy
+<p>
+  <pre align="center">
+,--------.,--.   ,--.,------.,--.   ,--.  
+'--.  .--' \  `.'  / |  .--. '\  `.'  /  
+   |  |     '.    /  |  '--' | '.    /   
+   |  |       |  |   |  | --'    |  |    
+   `--'       `--'   `--'        `--'    
+  </pre>
+</p>
+
+## Overview
+![Description of the GIF](./doc/assets/demo.gif)
 
 ## Table of contents
 - [Overview](#overview)
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Uninstall](#uninstall)
-
-## Overview
 
 ## Installation
 To install Typy on Linux, you can use the following command:
