@@ -1,11 +1,11 @@
 mod finder;
 
 use finder::find;
-use std::io::Error;
+use anyhow::Result;
 
 const LENGTH: i32 = 70;
 
-pub fn get_words(res: &str) -> Result<Vec<Vec<String>>, Error> {
+pub fn get_words(res: &str) -> Result<Vec<Vec<String>>> {
     let mut words = Vec::new();
     for _ in 0..3 {
         words.push(find(LENGTH, res)?);

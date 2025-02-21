@@ -1,16 +1,15 @@
 mod config;
+mod mode;
 mod scores;
 mod terminal;
 mod utils;
 mod word_provider;
-mod mode;
 
+use anyhow::{Context, Result};
 use clap::{App, Arg};
-use std::process;
 use mode::Mode;
 
-
-fn main() {
+fn main() -> Result<()> {
     let matches = App::new("Typy CLI")
         .version("0.1.0")
         .author("Pazl")
@@ -45,31 +44,32 @@ fn main() {
         )
         .get_matches();
 
-    let duration_str = matches.value_of("duration").unwrap();
-    let duration: u64 = duration_str.parse().expect("Invalid duration value");
+    let duration_str = matches
+        .value_of("duration")
+        .context("Failed to get duration value")?;
+    let duration: u64 = duration_str.parse().context("Invalid duration value")?;
 
     let theme = config::theme::ThemeColors::new();
 
     if matches.is_present("config") {
-        utils::create_config();
-        utils::open_config();
-        return;
+        utils::create_config()?;
+        utils::open_config()?;
+        return Ok(());
     }
 
     if matches.is_present("stats") {
         println!("Stats");
-        return;
+        return Ok(());
     }
 
     let mut mode_strs: Vec<&str> = matches.values_of("mode").unwrap_or_default().collect();
-    mode_strs.is_empty().then(|| {
-        mode_strs.clear()
-    });
+    mode_strs.is_empty().then(|| mode_strs.clear());
 
-    let mode = Mode::from_str(mode_strs).unwrap_or_else(|err| {
-        eprintln!("Error: {}", err);
-        process::exit(1);
-    }).add_duration(duration);
+    let mode = Mode::from_str(mode_strs)
+        .context("Failed to parse mode")?
+        .add_duration(duration);
 
-    terminal::run(mode, theme);
+    terminal::run(mode, theme)?;
+
+    Ok(())
 }

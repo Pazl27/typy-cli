@@ -4,6 +4,7 @@ use crossterm::event::{read, Event, KeyEvent};
 use crossterm::style::SetForegroundColor;
 use crossterm::terminal::{Clear, ClearType};
 use crossterm::ExecutableCommand;
+use anyhow::{Result, Context};
 
 use crate::utils;
 use crate::scores::stats::Stats;
@@ -13,38 +14,38 @@ pub fn show_stats(
     mut stdout: &std::io::Stdout,
     stats: Stats,
     theme: &ThemeColors
-) -> Option<()> {
+) -> Result<()> {
 
-    stdout.execute(Clear(ClearType::All)).unwrap();
+    stdout.execute(Clear(ClearType::All)).context("Failed to clear terminal")?;
 
     // Draw infos
-    stdout.execute(MoveTo(15, 16)).unwrap();
+    stdout.execute(MoveTo(15, 16)).context("Failed to move cursor")?;
     stdout
         .execute(SetForegroundColor(theme.missing))
-        .unwrap();
+        .context("Failed to set foreground color")?;
     print!("WPM");
-    stdout.execute(MoveTo(15, 17)).unwrap();
+    stdout.execute(MoveTo(15, 17)).context("Failed to move cursor")?;
     stdout
         .execute(SetForegroundColor(theme.accent))
-        .unwrap();
+        .context("Failed to set foreground color")?;
     print!("{:02}", stats.wpm() as i32);
-    stdout.execute(MoveTo(15, 20)).unwrap();
+    stdout.execute(MoveTo(15, 20)).context("Failed to move cursor")?;
     stdout
         .execute(SetForegroundColor(theme.missing))
-        .unwrap();
+        .context("Failed to set foreground color")?;
     print!("RAW");
-    stdout.execute(MoveTo(15, 21)).unwrap();
+    stdout.execute(MoveTo(15, 21)).context("Failed to move cursor")?;
     stdout
         .execute(SetForegroundColor(theme.accent))
-        .unwrap();
+        .context("Failed to set foreground color")?;
     print!("{:02}", stats.raw_wpm() as i32);
-    stdout.execute(MoveTo(37, 25)).unwrap();
+    stdout.execute(MoveTo(37, 25)).context("Failed to move cursor")?;
     stdout
         .execute(SetForegroundColor(theme.accent))
-        .unwrap();
+        .context("Failed to set foreground color")?;
     print!("ACCURACY: {:.2}%", stats.accuracy());
 
-    graph::draw_graph(stats.lps).unwrap();
+    graph::draw_graph(stats.lps).context("Failed to draw graph")?;
 
     loop {
         if let Ok(Event::Key(KeyEvent {
@@ -52,8 +53,10 @@ pub fn show_stats(
         })) = read()
         {
             if utils::close_typy(&code, &modifiers).is_some() {
-                break None;
+                break;
             }
         }
     }
+
+    Ok(())
 }

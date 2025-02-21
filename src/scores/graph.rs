@@ -10,6 +10,7 @@ use tui::widgets::{Axis, GraphType};
 use tui::Terminal;
 
 use crate::config::graph_colors::Graph;
+use anyhow::Result;
 
 pub fn draw_graph(data: Vec<i32>) -> Result<(), io::Error> {
     let stdout = io::stdout();
@@ -38,7 +39,10 @@ pub fn draw_graph(data: Vec<i32>) -> Result<(), io::Error> {
         let chart = Chart::new(datasets)
             .x_axis(
                 Axis::default()
-                    .title(Span::styled("time in s", Style::default().fg(graph_colors.title)))
+                    .title(Span::styled(
+                        "time in s",
+                        Style::default().fg(graph_colors.title),
+                    ))
                     .style(Style::default().fg(graph_colors.axis))
                     .bounds([0.0, 10.0])
                     .labels(
@@ -51,7 +55,10 @@ pub fn draw_graph(data: Vec<i32>) -> Result<(), io::Error> {
             )
             .y_axis(
                 Axis::default()
-                    .title(Span::styled("letters", Style::default().fg(graph_colors.title)))
+                    .title(Span::styled(
+                        "letters",
+                        Style::default().fg(graph_colors.title),
+                    ))
                     .style(Style::default().fg(graph_colors.axis))
                     .bounds([0.0, 10.0])
                     .labels(

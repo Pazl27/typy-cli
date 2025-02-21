@@ -12,4 +12,5 @@ dirs = "6.0"
 toml = "0.8.20"
 serde = { version = "1.0", features = ["derive"] }
 lazy_static = "1.5.0"
+anyhow = "1.0.95"
 
