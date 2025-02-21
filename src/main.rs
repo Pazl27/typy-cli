@@ -17,7 +17,7 @@ use clap::Parser;
 #[command(about = "Monkeytype clone in the terminal for more information check: https://github.com/Pazl27/typy-cli")]
 #[command(long_about = None)]
 struct Cli {
-    #[arg(short = 't', long = "time", default_value = "10", help = "Duration of the game")]
+    #[arg(short = 't', long = "time", default_value = "30", help = "Duration of the game")]
     time: u64,
 
     #[arg(short = 's', long = "stats", help = "Display game stats")]
