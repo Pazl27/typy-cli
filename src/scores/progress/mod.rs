@@ -23,56 +23,56 @@ impl Score {
             accuracy,
         }
     }
-}
 
-pub fn save_score(score: Score) -> Result<()> {
-    let mut scores = get_scores()?;
-    scores.push(score);
+    pub fn save_score(score: Score) -> Result<()> {
+        let mut scores = Self::get_scores()?;
+        scores.push(score);
 
-    if scores.len() > 10 {
-        scores.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
-        cleanup_scores(&mut scores);
-    }
-
-    write_to_file(scores)?;
-
-    Ok(())
-}
-
-fn cleanup_scores(scores: &mut Vec<Score>) {
-    scores.truncate(10);
-}
-
-fn get_scores() -> Result<Vec<Score>> {
-    let mut path = dirs::home_dir().context("Failed to get home directory")?;
-    path.push(".local/share/typy/scores.json");
-
-    if !path.exists() {
-        if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent).context("Failed to create directories")?;
+        if scores.len() > 10 {
+            scores.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+            Self::cleanup_scores(&mut scores);
         }
-        File::create(&path).context("Failed to create scores.json file")?;
+
+        Self::write_to_file(scores)?;
+
+        Ok(())
     }
 
-    let file = File::open(&path).context("Failed to open scores.json file")?;
-    let scores: Vec<Score> = match serde_json::from_reader(file) {
-        Ok(scores) => scores,
-        Err(e) if e.is_eof() => Vec::new(),
-        Err(e) => return Err(e).context("Failed to read scores from file"),
-    };
-    Ok(scores)
-}
-
-fn write_to_file(scores: Vec<Score>) -> Result<()> {
-    let mut path = dirs::home_dir().context("Failed to get home directory")?;
-    path.push(".local/share/typy/scores.json");
-
-    if !path.exists() {
-        return Err(anyhow::anyhow!("File does not exist"));
+    fn cleanup_scores(scores: &mut Vec<Score>) {
+        scores.truncate(10);
     }
 
-    let mut file = File::create(&path).context("Failed to truncate scores.json file")?;
-    to_writer_pretty(&mut file, &scores).context("Failed to write scores to file")?;
+    fn get_scores() -> Result<Vec<Score>> {
+        let mut path = dirs::home_dir().context("Failed to get home directory")?;
+        path.push(".local/share/typy/scores.json");
 
-    Ok(())
+        if !path.exists() {
+            if let Some(parent) = path.parent() {
+                fs::create_dir_all(parent).context("Failed to create directories")?;
+            }
+            File::create(&path).context("Failed to create scores.json file")?;
+        }
+
+        let file = File::open(&path).context("Failed to open scores.json file")?;
+        let scores: Vec<Score> = match serde_json::from_reader(file) {
+            Ok(scores) => scores,
+            Err(e) if e.is_eof() => Vec::new(),
+            Err(e) => return Err(e).context("Failed to read scores from file"),
+        };
+        Ok(scores)
+    }
+
+    fn write_to_file(scores: Vec<Score>) -> Result<()> {
+        let mut path = dirs::home_dir().context("Failed to get home directory")?;
+        path.push(".local/share/typy/scores.json");
+
+        if !path.exists() {
+            return Err(anyhow::anyhow!("File does not exist"));
+        }
+
+        let mut file = File::create(&path).context("Failed to truncate scores.json file")?;
+        to_writer_pretty(&mut file, &scores).context("Failed to write scores to file")?;
+
+        Ok(())
+    }
 }
