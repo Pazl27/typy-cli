@@ -45,15 +45,15 @@ pub fn handle_input(
 }
 
 fn handle_space(game: &mut Game, stdout: &std::io::Stdout, x: u16, y: u16) -> Result<InputAction> {
+    if let InputAction::Continue = handle_space_at_start(game)? {
+        return Ok(InputAction::Continue);
+    }
+    
     if let InputAction::Continue = handle_start_of_line(game)? {
         return Ok(InputAction::Continue);
     }
 
     if let InputAction::Continue = handle_end_of_line(game, stdout, x, y)? {
-        return Ok(InputAction::Continue);
-    }
-
-    if let InputAction::Continue = handle_space_in_word(game)? {
         return Ok(InputAction::Continue);
     }
 
@@ -107,7 +107,7 @@ fn handle_end_of_line(
     Ok(InputAction::None)
 }
 
-fn handle_space_in_word(game: &Game) -> Result<InputAction> {
+fn handle_space_at_start(game: &Game) -> Result<InputAction> {
     if game
         .get_word_string(game.player.position_y)
         .chars()
