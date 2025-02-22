@@ -22,6 +22,7 @@ use crate::config::cursor_style::CursorKind;
 use crate::config::theme::ThemeColors;
 use crate::mode::Mode;
 use crate::scores::finish_overview;
+use crate::scores::progress::Score;
 use crate::scores::stats::Stats;
 use crate::utils;
 use crate::word_provider;
@@ -171,6 +172,12 @@ pub fn run(mode: Mode, theme: ThemeColors) -> Result<()> {
     }
 
     if !game.quit {
+        let score = Score::new(
+            stats.wpm() as u32,
+            stats.raw_wpm() as u32,
+            stats.accuracy() as f32,
+        );
+        Score::save_score(score).context("Failed to save score")?;
         finish_overview::show_stats(&stdout, stats, &theme).context("Failed to show stats")?;
     }
 
