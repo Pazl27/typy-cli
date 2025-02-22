@@ -10,6 +10,8 @@ use crate::{config::theme::ThemeColors, scores::stats::Stats};
 
 use super::Game;
 
+const MAX_WORD_LENGTH: usize = 100;
+
 pub enum InputAction {
     Continue,
     Break,
@@ -42,6 +44,9 @@ pub fn handle_input(
                 InputAction::Break => return Ok(InputAction::Break),
                 InputAction::None => {}
             }
+        } else if game.get_word_string(game.player.position_y).chars().count() <= MAX_WORD_LENGTH {
+            let _ = add_incorrect_char(game, theme, stdout, c, x, y)?;
+            game.player.position_x += 1;
         }
         stdout.flush().context("Failed to flush stdout")?;
     }
@@ -175,7 +180,7 @@ fn handle_chars(
         == ' '
     {
         if let InputAction::Continue = add_incorrect_char(game, theme, stdout, c, x, y)? {
-            return Ok(InputAction::Continue)
+            return Ok(InputAction::Continue);
         }
     } else {
         handle_incorrect_char(game, theme, stdout, expected_char, x, y)?;
@@ -239,8 +244,8 @@ fn add_incorrect_char(
     let position_x = game.player.position_x;
     let words = game.get_word_string(game.player.position_y);
 
-    if words.len() >= 100 {
-        return Ok(InputAction::Continue)
+    if words.len() >= MAX_WORD_LENGTH as usize {
+        return Ok(InputAction::Continue);
     }
 
     let before = words.chars().take(position_x as usize).collect::<String>();
