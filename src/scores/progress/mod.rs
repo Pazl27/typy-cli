@@ -24,12 +24,16 @@ impl Score {
         }
     }
 
+    pub fn sort_scores(scores: &mut Vec<Score>) {
+            scores.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+    }
+
     pub fn save_score(score: Score) -> Result<()> {
         let mut scores = Self::get_scores()?;
         scores.push(score);
 
         if scores.len() > 10 {
-            scores.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+            Self::sort_scores(&mut scores);
             Self::cleanup_scores(&mut scores);
         }
 
@@ -42,7 +46,7 @@ impl Score {
         scores.truncate(10);
     }
 
-    fn get_scores() -> Result<Vec<Score>> {
+    pub fn get_scores() -> Result<Vec<Score>> {
         let mut path = dirs::home_dir().context("Failed to get home directory")?;
         path.push(".local/share/typy/scores.json");
 
