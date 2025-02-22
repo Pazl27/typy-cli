@@ -239,7 +239,7 @@ fn add_incorrect_char(
     let position_x = game.player.position_x;
     let words = game.get_word_string(game.player.position_y);
 
-    if words.len() >= 90 {
+    if words.len() >= 100 {
         return Ok(InputAction::Continue)
     }
 
@@ -254,8 +254,8 @@ fn add_incorrect_char(
     stdout.execute(SetForegroundColor(theme.error))?;
     stdout.execute(SetAttribute(Attribute::Underlined))?;
     print!("{}", c);
+    stdout.execute(SetAttribute(Attribute::Reset))?;
     stdout.execute(SetForegroundColor(theme.missing))?;
-    stdout.execute(SetAttribute(Attribute::Reset))?; // Reset attributes to default
     print!("{}", after);
 
     let new_line = format!("{}{}{}", before, c, after);
