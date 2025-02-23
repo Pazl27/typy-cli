@@ -11,13 +11,6 @@
 > [!WARNING]  
 > When the terminal is too small it can lead to strange behavior.
 
-## Overview
-![Description of the GIF](./doc/assets/demo.gif)
-I wanted to create a simple typing game to improve my typing speed and accuracy. I really like using [monkeytype](https://monkeytype.com/) and I thought, why not create something similar
-in the terminal? I searched for some but didn't find anything I really liked, so I built it myself. Typy is a terminal-based typing game that displays a random
-word and asks you to type it as fast as possible. The game tracks your typing speed and accuracy, allowing you to monitor your progress over time. Typy also supports
-different game modes, such as uppercase and punctuation, to help you improve your typing skills in different areas.
-
 ## Table of contents
 - [Overview](#overview)
 - [Installation](#installation)
@@ -25,6 +18,13 @@ different game modes, such as uppercase and punctuation, to help you improve you
 - [Configuration](#configuration)
 - [Stats](#stats)
 - [Uninstall](#uninstall)
+
+## Overview
+![Description of the GIF](./doc/assets/demo.gif)
+I wanted to create a simple typing game to improve my typing speed and accuracy. I really like using [monkeytype](https://monkeytype.com/) and I thought, why not create something similar
+in the terminal? I searched for some but didn't find anything I really liked, so I built it myself. Typy is a terminal-based typing game that displays a random
+word and asks you to type it as fast as possible. The game tracks your typing speed and accuracy, allowing you to monitor your progress over time. Typy also supports
+different game modes, such as uppercase and punctuation, to help you improve your typing skills in different areas.
 
 ## Installation
 To install Typy on Linux, you can use the following command:
