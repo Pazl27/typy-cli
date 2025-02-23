@@ -62,9 +62,14 @@ impl Data {
         Ok(())
     }
 
-    fn get_averages() -> Result<Averages> {
+    pub fn get_averages() -> Result<Averages> {
         let data = get_data()?;
         Ok(data.averages)
+    }
+
+    pub fn get_scores() -> Result<Vec<Score>> {
+        let data = get_data()?;
+        Ok(data.scores)
     }
 }
 
@@ -119,7 +124,7 @@ impl Score {
     }
 
     fn update_scores(score: &Score) -> Result<Vec<Score>> {
-        let mut scores = Self::get_scores()?;
+        let mut scores = Data::get_scores()?;
         scores.push(score.clone());
 
         if scores.len() > 10 {
@@ -132,11 +137,6 @@ impl Score {
 
     fn cleanup_scores(scores: &mut Vec<Score>) {
         scores.truncate(10);
-    }
-
-    pub fn get_scores() -> Result<Vec<Score>> {
-        let data = get_data()?;
-        Ok(data.scores)
     }
 }
 

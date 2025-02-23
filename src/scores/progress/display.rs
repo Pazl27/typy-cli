@@ -42,11 +42,55 @@ pub fn draw() -> Result<()> {
 }
 
 fn draw_averages(stdout: &mut std::io::Stdout) -> Result<Averages> {
-    todo!()
+    let averages = Data::get_averages()?;
+
+    let mut table = Table::new();
+    table
+        .load_preset(UTF8_FULL)
+        .set_content_arrangement(ContentArrangement::Dynamic)
+        .set_width(TABLE_WIDTH)
+        .set_header(vec![
+            Cell::new("Avg: WPM")
+                .add_attribute(Attribute::Bold)
+                .set_alignment(CellAlignment::Center),
+            Cell::new("Avg: RAW")
+                .add_attribute(Attribute::Bold)
+                .set_alignment(CellAlignment::Center),
+            Cell::new("Avg: ACCURACY")
+                .add_attribute(Attribute::Bold)
+                .set_alignment(CellAlignment::Center),
+        ])
+        .add_row(vec![
+            Cell::new(format!("{:.2}", averages.wpm_avg.avg)).set_alignment(CellAlignment::Center),
+            Cell::new(format!("{:.2}", averages.raw_avg.avg)).set_alignment(CellAlignment::Center),
+            Cell::new(format!("{:.2}%", averages.accuracy_avg.avg))
+                .set_alignment(CellAlignment::Center),
+        ]);
+
+    let (cols, _) = terminal::size()?;
+    let x = cols / 2 - (39 / 2);
+    let y = 8;
+
+    stdout
+        .execute(MoveTo(x, y))
+        .context("Failed to move cursor")?;
+
+    let table_string = table.to_string();
+    let lines: Vec<&str> = table_string.lines().collect();
+
+    for (i, line) in lines.iter().enumerate() {
+        stdout
+            .execute(MoveTo(x, y + i as u16))
+            .context("Failed to move cursor")?;
+        write!(stdout, "{}", line)?;
+    }
+    stdout.flush()?;
+
+    Ok(averages)
 }
 
 fn draw_progress(stdout: &mut std::io::Stdout, averages: Averages) -> Result<()> {
-    let mut scores = Score::get_scores()?;
+    let mut scores = Data::get_scores()?;
     Score::sort_scores(&mut scores);
 
     let mut table = Table::new();
@@ -55,20 +99,52 @@ fn draw_progress(stdout: &mut std::io::Stdout, averages: Averages) -> Result<()>
         .set_content_arrangement(ContentArrangement::Dynamic)
         .set_width(TABLE_WIDTH)
         .set_header(vec![
-            Cell::new("DATE").add_attribute(Attribute::Bold),
-            Cell::new("TIME").add_attribute(Attribute::Bold),
-            Cell::new("WPM").add_attribute(Attribute::Bold),
-            Cell::new("RAW").add_attribute(Attribute::Bold),
-            Cell::new("ACCURACY").add_attribute(Attribute::Bold),
+            Cell::new("DATE")
+                .add_attribute(Attribute::Bold)
+                .set_alignment(CellAlignment::Center),
+            Cell::new("TIME")
+                .add_attribute(Attribute::Bold)
+                .set_alignment(CellAlignment::Center),
+            Cell::new("WPM")
+                .add_attribute(Attribute::Bold)
+                .set_alignment(CellAlignment::Center),
+            Cell::new("RAW")
+                .add_attribute(Attribute::Bold)
+                .set_alignment(CellAlignment::Center),
+            Cell::new("ACCURACY")
+                .add_attribute(Attribute::Bold)
+                .set_alignment(CellAlignment::Center),
         ]);
 
     for score in &scores {
+        let wpm_color = if score.wpm >= averages.wpm_avg.avg as u32 {
+            Color::Green
+        } else {
+            Color::Red
+        };
+        let raw_color = if score.raw >= averages.raw_avg.avg as u32 {
+            Color::Green
+        } else {
+            Color::Red
+        };
+        let accuracy_color = if score.accuracy >= averages.accuracy_avg.avg {
+            Color::Green
+        } else {
+            Color::Red
+        };
+
         table.add_row(vec![
-            Cell::new(score.get_date()),
-            Cell::new(score.get_time()),
-            Cell::new(score.wpm.to_string()),
-            Cell::new(score.raw.to_string()),
-            Cell::new(format!("{:.2}%", score.accuracy)),
+            Cell::new(score.get_date()).set_alignment(CellAlignment::Center),
+            Cell::new(score.get_time()).set_alignment(CellAlignment::Center),
+            Cell::new(score.wpm.to_string())
+                .fg(wpm_color)
+                .set_alignment(CellAlignment::Center),
+            Cell::new(score.raw.to_string())
+                .fg(raw_color)
+                .set_alignment(CellAlignment::Center),
+            Cell::new(format!("{:.2}%", score.accuracy))
+                .fg(accuracy_color)
+                .set_alignment(CellAlignment::Center),
         ]);
     }
 
