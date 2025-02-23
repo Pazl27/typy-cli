@@ -21,7 +21,9 @@ different game modes, such as uppercase and punctuation, to help you improve you
 ## Table of contents
 - [Overview](#overview)
 - [Installation](#installation)
+- [Flags](#flags)
 - [Configuration](#configuration)
+- [Stats](#stats)
 - [Uninstall](#uninstall)
 
 ## Installation
