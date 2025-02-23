@@ -8,6 +8,8 @@
   </pre>
 </div>
 
+> [!WARNING]  
+> When the terminal is too small it can lead to strange behavior.
 
 ## Overview
 ![Description of the GIF](./doc/assets/demo.gif)
@@ -106,6 +108,18 @@ typy -c
 ```
 
 This allows you to customize the appearance of Typy to match your preferences.
+
+## Stats
+The stats are saved in a file located at `~/.local/share/typy/stats.json`. The stats file tracks the stats of the past 10 games. Also it shows the average WPM,
+RAW and accuracy of the all games played.
+To check your stats you can use the `typy --stats` command.
+
+```bash
+typy -s
+```
+This will display the stats of the last 10 games and looks something like this:
+![Stats](./doc/assets/snapshot_2025-02-24_00-28-16.png)
+To close this view press `Ctrl + c` or `esc`.
 
 ## Uninstall
 ```bash
