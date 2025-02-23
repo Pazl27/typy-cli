@@ -1,7 +1,7 @@
 mod keyboard;
 
 use anyhow::{Context, Result};
-use crossterm::cursor::SetCursorStyle;
+use crossterm::cursor::{self, SetCursorStyle};
 use crossterm::event::poll;
 use crossterm::{
     cursor::MoveTo,
@@ -79,7 +79,7 @@ pub fn run(mode: Mode, theme: ThemeColors) -> Result<()> {
 
     setup_terminal(&stdout).context("Failed to setup terminal")?;
 
-    let (x, y) = utils::calc_size().context("Failed to calculate terminal size")?;
+    let (x, y) = utils::calc_middle_for_text().context("Failed to calculate terminal size")?;
 
     for i in 0..game.list.len() {
         print_words(
@@ -172,6 +172,8 @@ pub fn run(mode: Mode, theme: ThemeColors) -> Result<()> {
     }
 
     if !game.quit {
+
+        stdout.execute(cursor::Hide)?;
         let score = Score::new(
             stats.wpm() as u32,
             stats.raw_wpm() as u32,
@@ -201,6 +203,7 @@ fn setup_terminal(mut stdout: &std::io::Stdout) -> Result<()> {
 
 fn reset_terminal(mut stdout: &std::io::Stdout) -> Result<()> {
     disable_raw_mode()?;
+    stdout.execute(cursor::Show)?;
     stdout.execute(ResetColor)?;
     stdout.execute(Clear(ClearType::All))?;
     stdout.execute(MoveTo(0, 0))?;

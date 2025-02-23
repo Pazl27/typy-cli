@@ -24,6 +24,14 @@ impl Score {
         }
     }
 
+    pub fn get_date(&self) -> String {
+        self.timestamp.format("%Y-%m-%d").to_string()
+    }
+
+    pub fn get_time(&self) -> String {
+        self.timestamp.format("%H:%M:%S").to_string()
+    }
+
     pub fn sort_scores(scores: &mut Vec<Score>) {
             scores.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
     }

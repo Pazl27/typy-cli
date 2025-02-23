@@ -14,7 +14,7 @@ pub fn close_typy(code: &KeyCode, modifiers: &KeyModifiers) -> Option<()> {
     }
 }
 
-pub fn calc_size() -> Result<(u16, u16)> {
+pub fn calc_middle_for_text() -> Result<(u16, u16)> {
     let (cols, rows) = crossterm::terminal::size()
         .context("Failed to get terminal size")?;
     let x = cols / 2 - (LINE_LENGTH / 2) as u16;
