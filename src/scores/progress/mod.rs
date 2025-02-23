@@ -15,7 +15,10 @@ pub struct Score {
 }
 
 impl Score {
-    pub fn new(wpm: u32, raw: u32, accuracy: f32) -> Score {
+    pub fn new(wpm: u32, raw: u32, mut accuracy: f32) -> Score {
+        if accuracy.is_nan() {
+            accuracy = 0.0;
+        }
         Score {
             timestamp: chrono::Local::now().naive_local(),
             wpm,
