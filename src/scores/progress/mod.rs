@@ -55,20 +55,54 @@ impl Data {
 
     pub fn save_data(score: Score) -> Result<()> {
         let scores = Score::update_scores(&score)?;
-        let averages = calculate_averages(score)?;
+        let averages = Averages::new(score)?;
 
         let data = Data::new(scores, averages);
-        write_to_file(data)?;
+        Self::write_to_file(data)?;
+        Ok(())
+    }
+
+    pub fn get_data() -> Result<Data> {
+        let mut path = dirs::home_dir().context("Failed to get home directory")?;
+        path.push(".local/share/typy/scores.json");
+
+        if !path.exists() {
+            if let Some(parent) = path.parent() {
+                fs::create_dir_all(parent).context("Failed to create directories")?;
+            }
+            File::create(&path).context("Failed to create scores.json file")?;
+        }
+
+        let file = File::open(&path).context("Failed to open scores.json file")?;
+        let data: Data = match serde_json::from_reader(file) {
+            Ok(data) => data,
+            Err(e) if e.is_eof() => Data::default(),
+            Err(e) => return Err(e).context("Failed to read scores from file"),
+        };
+        Ok(data)
+    }
+
+    fn write_to_file(data: Data) -> Result<()> {
+        let mut path = dirs::home_dir().context("Failed to get home directory")?;
+        path.push(".local/share/typy/scores.json");
+
+        if !path.exists() {
+            return Err(anyhow::anyhow!("File does not exist"));
+        }
+
+        let mut file = File::create(&path).context("Failed to truncate scores.json file")?;
+        to_writer_pretty(&mut file, &data).context("Failed to write scores to file")?;
+
         Ok(())
     }
 
     pub fn get_averages() -> Result<Averages> {
-        let data = get_data()?;
+        let data = Data::get_data()?;
         Ok(data.averages)
     }
 
     pub fn get_scores() -> Result<Vec<Score>> {
-        let data = get_data()?;
+        let data = Data::get_data()?;
         Ok(data.scores)
     }
 }
@@ -140,79 +174,50 @@ impl Score {
     }
 }
 
-fn calculate_averages(score: Score) -> Result<Averages> {
-    let averages = Data::get_averages()?;
-    let mut wpm_sum = averages.wpm_avg.sum_all;
-    let mut raw_sum = averages.raw_avg.sum_all;
-    let mut accuracy_sum = averages.accuracy_avg.sum_all;
-
-    let mut wpm_count = averages.wpm_avg.count;
-    let mut raw_count = averages.raw_avg.count;
-    let mut accuracy_count = averages.accuracy_avg.count;
-
-    wpm_sum += score.wpm as u32;
-    raw_sum += score.raw as u32;
-    accuracy_sum += score.accuracy as f32;
-
-    wpm_count += 1;
-    raw_count += 1;
-    accuracy_count += 1;
-
-    let wpm_avg = WpmAvg {
-        avg: wpm_sum as f32 / wpm_count as f32,
-        count: wpm_count,
-        sum_all: wpm_sum,
-    };
-
-    let raw_avg = RawAvg {
-        avg: raw_sum as f32 / raw_count as f32,
-        count: raw_count,
-        sum_all: raw_sum,
-    };
-
-    let accuracy_avg = AccuracyAvg {
-        avg: accuracy_sum / accuracy_count as f32,
-        count: accuracy_count,
-        sum_all: accuracy_sum,
-    };
-
-    Ok(Averages {
-        wpm_avg,
-        raw_avg,
-        accuracy_avg,
-    })
-}
-
-fn write_to_file(data: Data) -> Result<()> {
-    let mut path = dirs::home_dir().context("Failed to get home directory")?;
-    path.push(".local/share/typy/scores.json");
-
-    if !path.exists() {
-        return Err(anyhow::anyhow!("File does not exist"));
+impl Averages {
+    fn new(score: Score) -> Result<Self> {
+        Ok(Self::calculate_averages(score)?)
     }
+    fn calculate_averages(score: Score) -> Result<Averages> {
+        let averages = Data::get_averages()?;
+        let mut wpm_sum = averages.wpm_avg.sum_all;
+        let mut raw_sum = averages.raw_avg.sum_all;
+        let mut accuracy_sum = averages.accuracy_avg.sum_all;
 
-    let mut file = File::create(&path).context("Failed to truncate scores.json file")?;
-    to_writer_pretty(&mut file, &data).context("Failed to write scores to file")?;
+        let mut wpm_count = averages.wpm_avg.count;
+        let mut raw_count = averages.raw_avg.count;
+        let mut accuracy_count = averages.accuracy_avg.count;
 
-    Ok(())
-}
+        wpm_sum += score.wpm as u32;
+        raw_sum += score.raw as u32;
+        accuracy_sum += score.accuracy as f32;
 
-pub fn get_data() -> Result<Data> {
-    let mut path = dirs::home_dir().context("Failed to get home directory")?;
-    path.push(".local/share/typy/scores.json");
+        wpm_count += 1;
+        raw_count += 1;
+        accuracy_count += 1;
 
-    if !path.exists() {
-        if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent).context("Failed to create directories")?;
-        }
-        File::create(&path).context("Failed to create scores.json file")?;
+        let wpm_avg = WpmAvg {
+            avg: wpm_sum as f32 / wpm_count as f32,
+            count: wpm_count,
+            sum_all: wpm_sum,
+        };
+
+        let raw_avg = RawAvg {
+            avg: raw_sum as f32 / raw_count as f32,
+            count: raw_count,
+            sum_all: raw_sum,
+        };
+
+        let accuracy_avg = AccuracyAvg {
+            avg: accuracy_sum / accuracy_count as f32,
+            count: accuracy_count,
+            sum_all: accuracy_sum,
+        };
+
+        Ok(Averages {
+            wpm_avg,
+            raw_avg,
+            accuracy_avg,
+        })
     }
-
-    let file = File::open(&path).context("Failed to open scores.json file")?;
-    let data: Data = match serde_json::from_reader(file) {
-        Ok(data) => data,
-        Err(e) if e.is_eof() => Data::default(),
-        Err(e) => return Err(e).context("Failed to read scores from file"),
-    };
-    Ok(data)
 }
