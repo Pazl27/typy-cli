@@ -16,6 +16,36 @@ use crossterm::{cursor, ExecutableCommand};
 const TABLE_WIDTH: u16 = 48;
 
 pub fn draw() -> Result<()> {
+    let mut stdout = stdout();
+    setup_terminal(&mut stdout)?;
+
+    let averages = draw_averages(&mut stdout)?;
+    draw_progress(&mut stdout, averages)?;
+
+    enable_raw_mode()?;
+    loop {
+        if poll(Duration::from_millis(5)).context("Failed to poll for events")? {
+            if let Ok(Event::Key(KeyEvent {
+                code, modifiers, ..
+            })) = read().context("Failed to read event")
+            {
+                if let Some(()) = utils::close_typy(&code, &modifiers) {
+                    break;
+                }
+            }
+        }
+    }
+
+    reset_terminal(&mut stdout)?;
+
+    Ok(())
+}
+
+fn draw_averages(stdout: &mut std::io::Stdout) -> Result<Averages> {
+    todo!()
+}
+
+fn draw_progress(stdout: &mut std::io::Stdout, averages: Averages) -> Result<()> {
     let mut scores = Score::get_scores()?;
     Score::sort_scores(&mut scores);
 
@@ -46,8 +76,6 @@ pub fn draw() -> Result<()> {
     let x = cols / 2 - (TABLE_WIDTH / 2);
     let y = rows / 2 - (scores.len() as u16 / 2);
 
-    let mut stdout = stdout();
-    setup_terminal(&mut stdout)?;
     stdout
         .execute(MoveTo(x, y))
         .context("Failed to move cursor")?;
@@ -62,22 +90,6 @@ pub fn draw() -> Result<()> {
         write!(stdout, "{}", line)?;
     }
     stdout.flush()?;
-
-    enable_raw_mode()?;
-    loop {
-        if poll(Duration::from_millis(5)).context("Failed to poll for events")? {
-            if let Ok(Event::Key(KeyEvent {
-                code, modifiers, ..
-            })) = read().context("Failed to read event")
-            {
-                if let Some(()) = utils::close_typy(&code, &modifiers) {
-                    break;
-                }
-            }
-        }
-    }
-
-    reset_terminal(&mut stdout)?;
 
     Ok(())
 }
