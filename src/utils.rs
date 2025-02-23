@@ -1,6 +1,6 @@
-use std::{fs, process::Command};
+use anyhow::{Context, Result};
 use dirs::home_dir;
-use anyhow::{Result, Context};
+use std::{fs, io::Write, process::Command};
 
 use crossterm::event::{KeyCode, KeyModifiers};
 
@@ -15,8 +15,7 @@ pub fn close_typy(code: &KeyCode, modifiers: &KeyModifiers) -> Option<()> {
 }
 
 pub fn calc_middle_for_text() -> Result<(u16, u16)> {
-    let (cols, rows) = crossterm::terminal::size()
-        .context("Failed to get terminal size")?;
+    let (cols, rows) = crossterm::terminal::size().context("Failed to get terminal size")?;
     let x = cols / 2 - (LINE_LENGTH / 2) as u16;
     let y = rows / 2 - 1;
 
@@ -29,13 +28,15 @@ pub fn create_config() -> Result<()> {
         let config_file = config_dir.join("config.toml");
 
         if !config_dir.exists() {
-            fs::create_dir_all(&config_dir)
-                .context("Failed to create config directory")?;
+            fs::create_dir_all(&config_dir).context("Failed to create config directory")?;
         }
 
         if !config_file.exists() {
-            fs::File::create(&config_file)
-                .context("Failed to create config file")?;
+            let mut file =
+                fs::File::create(&config_file).context("Failed to create config file")?;
+
+            file.write_all(b"# For more information about the configuration check:\n# https://github.com/Pazl27/typy-cli?tab=readme-ov-file#configuration")
+                .context("Failed to write to config file")?;
         }
     } else {
         eprintln!("Failed to get home directory");
@@ -58,7 +59,6 @@ pub fn open_config() -> Result<()> {
             .arg(config_file)
             .status()
             .with_context(|| format!("Failed to open config file with editor: {}", editor))?;
-
     } else {
         eprintln!("Failed to get home directory");
     }
