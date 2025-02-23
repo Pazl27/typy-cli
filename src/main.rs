@@ -6,18 +6,25 @@ mod utils;
 mod word_provider;
 
 use anyhow::{Context, Result};
-use mode::Mode;
 use clap::Parser;
-
+use mode::Mode;
+use scores::progress::display;
 
 #[derive(Parser)]
 #[command(name = "typy")]
 #[command(version = "0.1.0")]
 #[command(author = "Pazl27")]
-#[command(about = "Monkeytype clone in the terminal for more information check: https://github.com/Pazl27/typy-cli")]
+#[command(
+    about = "Monkeytype clone in the terminal for more information check: https://github.com/Pazl27/typy-cli"
+)]
 #[command(long_about = None)]
 struct Cli {
-    #[arg(short = 't', long = "time", default_value = "30", help = "Duration of the game")]
+    #[arg(
+        short = 't',
+        long = "time",
+        default_value = "30",
+        help = "Duration of the game"
+    )]
     time: u64,
 
     #[arg(short = 's', long = "stats", help = "Display game stats")]
@@ -30,9 +37,7 @@ struct Cli {
     mode: Vec<String>,
 }
 
-
 fn main() -> Result<()> {
-
     let cli = Cli::parse();
 
     let duration: u64 = cli.time;
@@ -46,7 +51,7 @@ fn main() -> Result<()> {
     }
 
     if cli.stats {
-        println!("Stats");
+        display::draw()?;
         return Ok(());
     }
 

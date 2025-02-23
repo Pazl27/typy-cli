@@ -1,7 +1,7 @@
 mod keyboard;
 
 use anyhow::{Context, Result};
-use crossterm::cursor::SetCursorStyle;
+use crossterm::cursor::{self, SetCursorStyle};
 use crossterm::event::poll;
 use crossterm::{
     cursor::MoveTo,
@@ -22,6 +22,7 @@ use crate::config::cursor_style::CursorKind;
 use crate::config::theme::ThemeColors;
 use crate::mode::Mode;
 use crate::scores::finish_overview;
+use crate::scores::progress::{Data, Score};
 use crate::scores::stats::Stats;
 use crate::utils;
 use crate::word_provider;
@@ -78,7 +79,7 @@ pub fn run(mode: Mode, theme: ThemeColors) -> Result<()> {
 
     setup_terminal(&stdout).context("Failed to setup terminal")?;
 
-    let (x, y) = utils::calc_size().context("Failed to calculate terminal size")?;
+    let (x, y) = utils::calc_middle_for_text().context("Failed to calculate terminal size")?;
 
     for i in 0..game.list.len() {
         print_words(
@@ -171,6 +172,14 @@ pub fn run(mode: Mode, theme: ThemeColors) -> Result<()> {
     }
 
     if !game.quit {
+
+        stdout.execute(cursor::Hide)?;
+        let score = Score::new(
+            stats.wpm() as u32,
+            stats.raw_wpm() as u32,
+            stats.accuracy() as f32,
+        );
+        Data::save_data(score).context("Failed to save data")?;
         finish_overview::show_stats(&stdout, stats, &theme).context("Failed to show stats")?;
     }
 
@@ -194,6 +203,7 @@ fn setup_terminal(mut stdout: &std::io::Stdout) -> Result<()> {
 
 fn reset_terminal(mut stdout: &std::io::Stdout) -> Result<()> {
     disable_raw_mode()?;
+    stdout.execute(cursor::Show)?;
     stdout.execute(ResetColor)?;
     stdout.execute(Clear(ClearType::All))?;
     stdout.execute(MoveTo(0, 0))?;
