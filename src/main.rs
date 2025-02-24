@@ -2,7 +2,6 @@ mod config;
 mod mode;
 mod scores;
 mod terminal;
-mod utils;
 mod word_provider;
 
 use anyhow::{Context, Result};
@@ -45,8 +44,8 @@ fn main() -> Result<()> {
     let theme = config::theme::ThemeColors::new();
 
     if cli.config {
-        utils::create_config()?;
-        utils::open_config()?;
+        config::create_config()?;
+        config::open_config()?;
         return Ok(());
     }
 

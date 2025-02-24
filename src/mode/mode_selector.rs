@@ -155,3 +155,4 @@ mod mode_tests {
         assert_eq!(list[0].len(), 2);
     }
 }
+

@@ -6,8 +6,8 @@ use crossterm::terminal::{Clear, ClearType};
 use crossterm::ExecutableCommand;
 use anyhow::{Result, Context};
 
-use crate::utils;
-use crate::scores::stats::Stats;
+use crate::terminal;
+use crate::scores::Stats;
 use crate::config::theme::ThemeColors;
 
 pub fn show_stats(
@@ -52,7 +52,7 @@ pub fn show_stats(
             code, modifiers, ..
         })) = read()
         {
-            if utils::close_typy(&code, &modifiers).is_some() {
+            if terminal::close_typy(&code, &modifiers).is_some() {
                 break;
             }
         }
