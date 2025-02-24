@@ -3,6 +3,7 @@ use derive_more::From;
 pub type Result<T> = core::result::Result<T, Error>;
 
 #[derive(Debug, From)]
+#[allow(dead_code)]
 pub enum Error {
     Custom(String),
     Io(std::io::Error),

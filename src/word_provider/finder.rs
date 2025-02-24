@@ -1,21 +1,18 @@
-use anyhow::Result;
 use dirs::home_dir;
+use rand::seq::IndexedRandom;
 use std::{
     fs::File,
     io::{BufRead, BufReader},
     path::PathBuf,
 };
 
-use rand::seq::IndexedRandom;
+use crate::error::{Error, Result};
 
-pub fn find(lenght: i32, res: &str) -> Result<Vec<String>, std::io::Error> {
+pub fn find(lenght: i32, res: &str) -> Result<Vec<String>> {
     let path = if res.contains("resources") {
         PathBuf::from(res)
     } else {
-        let mut home_path = home_dir().ok_or(std::io::Error::new(
-            std::io::ErrorKind::NotFound,
-            "Home directory not found",
-        ))?;
+        let mut home_path = home_dir().ok_or(Error::custom("Home directory not found"))?;
         home_path.push(res);
         home_path
     };
@@ -32,12 +29,12 @@ pub fn find(lenght: i32, res: &str) -> Result<Vec<String>, std::io::Error> {
     Ok(fitted_words)
 }
 
-fn read_file(path: &str) -> Result<Vec<String>, std::io::Error> {
-    let file = File::open(path)?;
+fn read_file(path: &str) -> Result<Vec<String>> {
+    let file = File::open(path).map_err(Error::from)?;
     let reader = BufReader::new(file);
     let mut words = Vec::new();
     for line in reader.lines() {
-        words.push(line?);
+        words.push(line.map_err(Error::from)?);
     }
     Ok(words)
 }

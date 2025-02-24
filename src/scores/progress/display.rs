@@ -4,7 +4,7 @@ use std::time::Duration;
 use crate::terminal;
 
 use super::*;
-use anyhow::{Context, Result};
+use crate::error::{Error, Result};
 use comfy_table::presets::UTF8_FULL;
 use comfy_table::*;
 use crossterm::cursor::MoveTo;
@@ -24,10 +24,10 @@ pub fn draw() -> Result<()> {
 
     enable_raw_mode()?;
     loop {
-        if poll(Duration::from_millis(5)).context("Failed to poll for events")? {
+        if poll(Duration::from_millis(5)).map_err(|e| Error::custom(format!("Failed to poll for events: {}", e)))? {
             if let Ok(Event::Key(KeyEvent {
                 code, modifiers, ..
-            })) = read().context("Failed to read event")
+            })) = read().map_err(|e| Error::custom(format!("Failed to read event: {}", e)))
             {
                 if let Some(()) = terminal::close_typy(&code, &modifiers) {
                     break;
@@ -73,7 +73,7 @@ fn draw_averages(stdout: &mut std::io::Stdout) -> Result<Averages> {
 
     stdout
         .execute(MoveTo(x, y))
-        .context("Failed to move cursor")?;
+        .map_err(|e| Error::custom(format!("Failed to move cursor: {}", e)))?;
 
     let table_string = table.to_string();
     let lines: Vec<&str> = table_string.lines().collect();
@@ -81,7 +81,7 @@ fn draw_averages(stdout: &mut std::io::Stdout) -> Result<Averages> {
     for (i, line) in lines.iter().enumerate() {
         stdout
             .execute(MoveTo(x, y + i as u16))
-            .context("Failed to move cursor")?;
+            .map_err(|e| Error::custom(format!("Failed to move cursor: {}", e)))?;
         write!(stdout, "{}", line)?;
     }
     stdout.flush()?;
@@ -154,7 +154,7 @@ fn draw_progress(stdout: &mut std::io::Stdout, averages: Averages) -> Result<()>
 
     stdout
         .execute(MoveTo(x, y))
-        .context("Failed to move cursor")?;
+        .map_err(|e| Error::custom(format!("Failed to move cursor: {}", e)))?;
 
     let table_string = table.to_string();
     let lines: Vec<&str> = table_string.lines().collect();
@@ -162,7 +162,7 @@ fn draw_progress(stdout: &mut std::io::Stdout, averages: Averages) -> Result<()>
     for (i, line) in lines.iter().enumerate() {
         stdout
             .execute(MoveTo(x, y + i as u16))
-            .context("Failed to move cursor")?;
+            .map_err(|e| Error::custom(format!("Failed to move cursor: {}", e)))?;
         write!(stdout, "{}", line)?;
     }
     stdout.flush()?;

@@ -10,12 +10,12 @@ use tui::widgets::{Axis, GraphType};
 use tui::Terminal;
 
 use crate::config::graph_colors::Graph;
-use anyhow::Result;
+use crate::error::{Result, Error}; 
 
-pub fn draw_graph(data: Vec<i32>) -> Result<(), io::Error> {
+pub fn draw_graph(data: Vec<i32>) -> Result<()> {
     let stdout = io::stdout();
     let backend = CrosstermBackend::new(stdout);
-    let mut terminal = Terminal::new(backend)?;
+    let mut terminal = Terminal::new(backend).map_err(Error::from)?;
 
     let graph_colors = Graph::new();
 
@@ -77,7 +77,7 @@ pub fn draw_graph(data: Vec<i32>) -> Result<(), io::Error> {
         );
 
         f.render_widget(chart, area);
-    })?;
+    }).map_err(Error::from)?;
 
     Ok(())
 }

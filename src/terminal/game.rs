@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use crate::error::{Error, Result};
 use crossterm::cursor::{self, SetCursorStyle};
 use crossterm::event::poll;
 use crossterm::{
@@ -67,16 +67,16 @@ pub fn run(mode: Mode, theme: ThemeColors) -> Result<()> {
 
     let mut game = Game::new(
         word_provider::get_words(".local/share/typy/words.txt")
-            .context("Failed to get words from file")?,
+            .map_err(|e| Error::custom(format!("Failed to get words from file: {}", e)))?,
     );
 
     mode.transform(&mut game.list);
 
     let mut stats = Stats::new();
 
-    setup_terminal(&stdout).context("Failed to setup terminal")?;
+    setup_terminal(&stdout).map_err(|e| Error::custom(format!("Failed to setup terminal: {}", e)))?;
 
-    let (x, y) = super::calc_middle_for_text().context("Failed to calculate terminal size")?;
+    let (x, y) = super::calc_middle_for_text().map_err(|e| Error::custom(format!("Failed to calculate terminal size: {}", e)))?;
 
     for i in 0..game.list.len() {
         print_words(
@@ -85,14 +85,14 @@ pub fn run(mode: Mode, theme: ThemeColors) -> Result<()> {
             &game
                 .list
                 .get(i)
-                .context("Failed to get word from list")?
+                .ok_or_else(|| Error::custom("Failed to get word from list"))?
                 .to_vec(),
             &stdout,
             &theme,
         )?;
         stdout
             .execute(MoveTo(x, y as u16))
-            .context("Failed to move cursor")?;
+            .map_err(|e| Error::custom(format!("Failed to move cursor: {}", e)))?;
     }
 
     let timer_expired = Arc::new(AtomicBool::new(false));
@@ -119,7 +119,7 @@ pub fn run(mode: Mode, theme: ThemeColors) -> Result<()> {
                 x + game.player.position_x as u16,
                 y + game.player.position_y as u16,
             ))
-            .context("Failed to move cursor")?;
+            .map_err(|e| Error::custom(format!("Failed to move cursor: {}", e)))?;
 
         if timer_expired.load(Ordering::Relaxed) {
             break;
@@ -128,31 +128,31 @@ pub fn run(mode: Mode, theme: ThemeColors) -> Result<()> {
         {
             let remaining = *remaining_time
                 .lock()
-                .map_err(|e| anyhow::anyhow!("Failed to lock remaining time: {}", e))?;
+                .map_err(|e| Error::custom(format!("Failed to lock remaining time: {}", e)))?;
             stdout
                 .execute(MoveTo(x, y - 2))
-                .context("Failed to move cursor")?;
+                .map_err(|e| Error::custom(format!("Failed to move cursor: {}", e)))?;
             stdout
                 .execute(SetForegroundColor(theme.accent))
-                .context("Failed to set foreground color")?;
+                .map_err(|e| Error::custom(format!("Failed to set foreground color: {}", e)))?;
             print!("{:02}", remaining);
-            stdout.flush().context("Failed to flush stdout")?;
+            stdout.flush().map_err(|e| Error::custom(format!("Failed to flush stdout: {}", e)))?;
             stdout
                 .execute(MoveTo(
                     x + game.player.position_x as u16,
                     y + game.player.position_y as u16,
                 ))
-                .context("Failed to move cursor")?;
+                .map_err(|e| Error::custom(format!("Failed to move cursor: {}", e)))?;
             if remaining != remaining_prev {
                 stats.add_letters();
             }
             remaining_prev = remaining;
         }
 
-        if poll(Duration::from_millis(5)).context("Failed to poll for events")? {
+        if poll(Duration::from_millis(5)).map_err(|e| Error::custom(format!("Failed to poll for events: {}", e)))? {
             if let Ok(Event::Key(KeyEvent {
                 code, modifiers, ..
-            })) = read().context("Failed to read event")
+            })) = read().map_err(|e| Error::custom(format!("Failed to read event: {}", e)))
             {
                 if let Some(()) = super::close_typy(&code, &modifiers) {
                     timer_expired.store(true, Ordering::Relaxed);
@@ -169,22 +169,21 @@ pub fn run(mode: Mode, theme: ThemeColors) -> Result<()> {
     }
 
     if !game.quit {
-
         stdout.execute(cursor::Hide)?;
         let score = Score::new(
             stats.wpm() as u32,
             stats.raw_wpm() as u32,
             stats.accuracy() as f32,
         );
-        Data::save_data(score).context("Failed to save data")?;
-        finish_overview::show_stats(&stdout, stats, &theme).context("Failed to show stats")?;
+        Data::save_data(score).map_err(|e| Error::custom(format!("Failed to save data: {}", e)))?;
+        finish_overview::show_stats(&stdout, stats, &theme).map_err(|e| Error::custom(format!("Failed to show stats: {}", e)))?;
     }
 
-    reset_terminal(&stdout).context("Failed to reset terminal")?;
+    reset_terminal(&stdout).map_err(|e| Error::custom(format!("Failed to reset terminal: {}", e)))?;
     timer_expired.store(true, Ordering::Relaxed);
     timer_thread
         .join()
-        .map_err(|e| anyhow::anyhow!("Failed to join timer thread: {:?}", e))?;
+        .map_err(|e| Error::custom(format!("Failed to join timer thread: {:?}", e)))?;
     Ok(())
 }
 
@@ -219,10 +218,10 @@ fn print_words(
 ) -> Result<()> {
     stdout
         .execute(MoveTo(x, y))
-        .context("Failed to move cursor")?;
+        .map_err(|e| Error::custom(format!("Failed to move cursor: {}", e)))?;
     stdout
         .execute(SetForegroundColor(theme.missing))
-        .context("Failed to set foreground color")?;
+        .map_err(|e| Error::custom(format!("Failed to set foreground color: {}", e)))?;
     words.iter().for_each(|word| {
         print!("{} ", word);
     });
@@ -244,7 +243,7 @@ fn start_timer(
         {
             let mut remaining_time = remaining_time
                 .lock()
-                .map_err(|e| anyhow::anyhow!("Failed to lock remaining time: {}", e))?;
+                .map_err(|e| Error::custom(format!("Failed to lock remaining time: {}", e)))?;
             *remaining_time = remaining;
         }
         thread::sleep(Duration::from_secs(1));
@@ -253,4 +252,3 @@ fn start_timer(
 
     Ok(())
 }
-

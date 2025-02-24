@@ -1,6 +1,6 @@
 use std::io::Write;
 
-use anyhow::{Context, Result};
+use crate::error::{Error, Result};
 use crossterm::event::KeyCode;
 use crossterm::style::{Attribute, SetForegroundColor};
 use crossterm::ExecutableCommand;
@@ -49,7 +49,7 @@ pub fn handle_input(
             game.player.position_x += 1;
         }
 
-        stdout.flush().context("Failed to flush stdout")?;
+        stdout.flush().map_err(|e| Error::custom(format!("Failed to flush stdout: {}", e)))?;
     }
     Ok(InputAction::None)
 }
@@ -93,7 +93,7 @@ fn handle_end_of_line(
         == game
             .list
             .get(game.player.position_y as usize)
-            .context("Failed to get word from list")?
+            .ok_or_else(|| Error::custom("Failed to get word from list"))?
             .len() as i32
             - 1
     {
@@ -111,7 +111,7 @@ fn handle_end_of_line(
                 x + game.player.position_x as u16,
                 y + game.player.position_y as u16,
             ))
-            .context("Failed to move cursor")?;
+            .map_err(|e| Error::custom(format!("Failed to move cursor: {}", e)))?;
         return Ok(InputAction::Continue);
     }
     Ok(InputAction::None)
@@ -122,7 +122,7 @@ fn handle_space_at_start(game: &Game) -> Result<InputAction> {
         .get_word_string(game.player.position_y)
         .chars()
         .nth((game.player.position_x - 1) as usize)
-        .context("Failed to get character from word")?
+        .ok_or_else(|| Error::custom("Failed to get character from word"))?
         == ' '
     {
         return Ok(InputAction::Continue);
@@ -139,7 +139,7 @@ fn handle_jump_position(
     game.jump_position = game
         .list
         .get(game.player.position_y as usize)
-        .context("Failed to get word from list")?
+        .ok_or_else(|| Error::custom("Failed to get word from list"))?
         .iter()
         .take(game.selected_word_index as usize + 1)
         .map(|word| word.chars().count() + 1)
@@ -151,7 +151,7 @@ fn handle_jump_position(
             x + game.player.position_x as u16,
             y + game.player.position_y as u16,
         ))
-        .context("Failed to move cursor")?;
+        .map_err(|e| Error::custom(format!("Failed to move cursor: {}", e)))?;
     game.selected_word_index += 1;
     Ok(())
 }
@@ -169,7 +169,7 @@ fn handle_chars(
         .get_word_string(game.player.position_y)
         .chars()
         .nth(game.player.position_x as usize)
-        .context("Failed to get character from word")?;
+        .ok_or_else(|| Error::custom("Failed to get character from word"))?;
 
     if c == expected_char {
         handle_correct_char(game, theme, stdout, c, x, y)?;
@@ -177,7 +177,7 @@ fn handle_chars(
         .get_word_string(game.player.position_y)
         .chars()
         .nth(game.player.position_x as usize)
-        .context("Failed to get character from word")?
+        .ok_or_else(|| Error::custom("Failed to get character from word"))?
         == ' '
     {
         if let InputAction::Continue = add_incorrect_char(game, theme, stdout, c, x, y)? {
@@ -202,13 +202,13 @@ fn handle_correct_char(
 ) -> Result<()> {
     stdout
         .execute(SetForegroundColor(theme.fg))
-        .context("Failed to set foreground color")?;
+        .map_err(|e| Error::custom(format!("Failed to set foreground color: {}", e)))?;
     stdout
         .execute(MoveTo(
             x + game.player.position_x as u16,
             y + game.player.position_y as u16,
         ))
-        .context("Failed to move cursor")?;
+        .map_err(|e| Error::custom(format!("Failed to move cursor: {}", e)))?;
     print!("{}", c);
     Ok(())
 }
@@ -223,13 +223,13 @@ fn handle_incorrect_char(
 ) -> Result<()> {
     stdout
         .execute(SetForegroundColor(theme.error))
-        .context("Failed to set foreground color")?;
+        .map_err(|e| Error::custom(format!("Failed to set foreground color: {}", e)))?;
     stdout
         .execute(MoveTo(
             x + game.player.position_x as u16,
             y + game.player.position_y as u16,
         ))
-        .context("Failed to move cursor")?;
+        .map_err(|e| Error::custom(format!("Failed to move cursor: {}", e)))?;
     print!("{}", c);
     Ok(())
 }
@@ -275,7 +275,7 @@ fn update_game_state(game: &mut Game, stats: &mut Stats, c: char) -> Result<()> 
         .get_word_string(game.player.position_y)
         .chars()
         .nth(game.player.position_x as usize)
-        .context("Failed to get character from word")?
+        .ok_or_else(|| Error::custom("Failed to get character from word"))?
     {
         stats.letter_count += 1;
     } else {
@@ -287,7 +287,7 @@ fn update_game_state(game: &mut Game, stats: &mut Stats, c: char) -> Result<()> 
         .get_word_string(game.player.position_y)
         .chars()
         .nth(game.player.position_x as usize)
-        .context("Failed to get character from word")?
+        .ok_or_else(|| Error::custom("Failed to get character from word"))?
         == ' '
         && c != ' '
     {

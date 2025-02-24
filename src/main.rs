@@ -3,11 +3,12 @@ mod mode;
 mod scores;
 mod terminal;
 mod word_provider;
+mod error;
 
-use anyhow::{Context, Result};
 use clap::Parser;
 use mode::Mode;
 use scores::progress::display;
+use error::{Error, Result};
 
 #[derive(Parser)]
 #[command(name = "typy")]
@@ -58,7 +59,7 @@ fn main() -> Result<()> {
     mode_strs.is_empty().then(|| mode_strs.clear());
 
     let mode = Mode::from_str(mode_strs)
-        .context("Failed to parse mode")?
+        .map_err(|_| Error::custom("Failed to parse mode"))?
         .add_duration(duration);
 
     terminal::run(mode, theme)?;

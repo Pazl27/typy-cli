@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use crate::error::{Error, Result};
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use serde_json::to_writer_pretty;
@@ -61,35 +61,35 @@ impl Data {
     }
 
     pub fn get_data() -> Result<Data> {
-        let mut path = dirs::home_dir().context("Failed to get home directory")?;
+        let mut path = dirs::home_dir().ok_or_else(|| Error::custom("Failed to get home directory"))?;
         path.push(".local/share/typy/scores.json");
 
         if !path.exists() {
             if let Some(parent) = path.parent() {
-                fs::create_dir_all(parent).context("Failed to create directories")?;
+                fs::create_dir_all(parent).map_err(|e| Error::custom(format!("Failed to create directories: {}", e)))?;
             }
-            File::create(&path).context("Failed to create scores.json file")?;
+            File::create(&path).map_err(|e| Error::custom(format!("Failed to create scores.json file: {}", e)))?;
         }
 
-        let file = File::open(&path).context("Failed to open scores.json file")?;
+        let file = File::open(&path).map_err(|e| Error::custom(format!("Failed to open scores.json file: {}", e)))?;
         let data: Data = match serde_json::from_reader(file) {
             Ok(data) => data,
             Err(e) if e.is_eof() => Data::default(),
-            Err(e) => return Err(e).context("Failed to read scores from file"),
+            Err(e) => return Err(Error::custom(format!("Failed to read scores from file: {}", e))),
         };
         Ok(data)
     }
 
     fn write_to_file(data: Data) -> Result<()> {
-        let mut path = dirs::home_dir().context("Failed to get home directory")?;
+        let mut path = dirs::home_dir().ok_or_else(|| Error::custom("Failed to get home directory"))?;
         path.push(".local/share/typy/scores.json");
 
         if !path.exists() {
-            return Err(anyhow::anyhow!("File does not exist"));
+            return Err(Error::custom("File does not exist"));
         }
 
-        let mut file = File::create(&path).context("Failed to truncate scores.json file")?;
-        to_writer_pretty(&mut file, &data).context("Failed to write scores to file")?;
+        let mut file = File::create(&path).map_err(|e| Error::custom(format!("Failed to truncate scores.json file: {}", e)))?;
+        to_writer_pretty(&mut file, &data).map_err(|e| Error::custom(format!("Failed to write scores to file: {}", e)))?;
 
         Ok(())
     }

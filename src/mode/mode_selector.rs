@@ -1,4 +1,4 @@
-use anyhow::Result;
+use crate::error::{Result, Error}; 
 use rand::Rng;
 use std::str::FromStr;
 
@@ -14,7 +14,7 @@ pub enum ModeType {
 impl FromStr for ModeType {
     type Err = ();
 
-    fn from_str(input: &str) -> Result<ModeType, Self::Err> {
+    fn from_str(input: &str) -> std::result::Result<ModeType, Self::Err> {
         match input {
             "uppercase" => Ok(ModeType::Uppercase),
             "punctuation" => Ok(ModeType::Punctuation),
@@ -41,21 +41,21 @@ impl Mode {
                 "normal" => modes.push(ModeType::Normal),
                 "uppercase" => modes.push(ModeType::Uppercase),
                 "punctuation" => modes.push(ModeType::Punctuation),
-                _ => return Err(anyhow::anyhow!("Invalid mode: {}", mode_str)),
+                _ => return Err(Error::custom(format!("Invalid mode: {}", mode_str))),
             }
         }
 
         // If no specific mode is provided, default to normal
-        modes.is_empty().then(|| {
+        if modes.is_empty() {
             settings.default_modes.iter().for_each(|m| {
                 modes.push(m.clone());
             });
-        });
+        }
 
-        modes.contains(&ModeType::Normal).then(|| {
+        if modes.contains(&ModeType::Normal) {
             modes.clear();
             modes.push(ModeType::Normal);
-        });
+        }
 
         Ok(Mode { modes, duration: 0, settings })
     }
