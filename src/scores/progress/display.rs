@@ -1,16 +1,16 @@
 use std::io::{stdout, Write};
 use std::time::Duration;
 
-use crate::utils;
+use crate::terminal;
 
 use super::*;
-use anyhow::Result;
+use anyhow::{Context, Result};
 use comfy_table::presets::UTF8_FULL;
 use comfy_table::*;
 use crossterm::cursor::MoveTo;
 use crossterm::event::{poll, read, Event, KeyEvent};
 use crossterm::style::ResetColor;
-use crossterm::terminal::{self, disable_raw_mode, enable_raw_mode, Clear, ClearType};
+use crossterm::terminal::{disable_raw_mode, enable_raw_mode, size, Clear, ClearType};
 use crossterm::{cursor, ExecutableCommand};
 
 const TABLE_WIDTH: u16 = 48;
@@ -29,7 +29,7 @@ pub fn draw() -> Result<()> {
                 code, modifiers, ..
             })) = read().context("Failed to read event")
             {
-                if let Some(()) = utils::close_typy(&code, &modifiers) {
+                if let Some(()) = terminal::close_typy(&code, &modifiers) {
                     break;
                 }
             }
@@ -67,7 +67,7 @@ fn draw_averages(stdout: &mut std::io::Stdout) -> Result<Averages> {
                 .set_alignment(CellAlignment::Center),
         ]);
 
-    let (cols, _) = terminal::size()?;
+    let (cols, _) = size()?;
     let x = cols / 2 - (39 / 2);
     let y = 8;
 
@@ -148,7 +148,7 @@ fn draw_progress(stdout: &mut std::io::Stdout, averages: Averages) -> Result<()>
         ]);
     }
 
-    let (cols, rows) = terminal::size()?;
+    let (cols, rows) = size()?;
     let x = cols / 2 - (TABLE_WIDTH / 2);
     let y = rows / 2 - (scores.len() as u16 / 2);
 

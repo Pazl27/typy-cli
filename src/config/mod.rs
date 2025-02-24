@@ -1,5 +1,6 @@
-pub mod theme;
-pub mod graph_colors;
-pub mod cursor_style;
-pub mod mode_settings;
-mod toml_parser;
+mod config_tables;
+mod config_utils;
+pub mod toml_parser;
+
+pub use config_tables::*;
+pub use config_utils::*;

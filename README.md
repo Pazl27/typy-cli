@@ -20,7 +20,7 @@
 - [Uninstall](#uninstall)
 
 ## Overview
-![Description of the GIF](./doc/assets/demo.gif)
+![Description of the GIF](./docs/assets/demo.gif)
 I wanted to create a simple typing game to improve my typing speed and accuracy. I really like using [monkeytype](https://monkeytype.com/) and I thought, why not create something similar
 in the terminal? I searched for some but didn't find anything I really liked, so I built it myself. Typy is a terminal-based typing game that displays a random
 word and asks you to type it as fast as possible. The game tracks your typing speed and accuracy, allowing you to monitor your progress over time. Typy also supports
@@ -124,7 +124,7 @@ To check your stats you can use the `typy --stats` command.
 typy -s
 ```
 This will display the stats of the last 10 games and looks something like this:
-![Stats](./doc/assets/snapshot_2025-02-24_00-28-16.png)
+![Stats](./docs/assets/snapshot_2025-02-24_00-28-16.png)
 To close this view press `Ctrl + c` or `esc`.
 
 ## Uninstall

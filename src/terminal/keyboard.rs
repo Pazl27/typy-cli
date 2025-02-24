@@ -6,7 +6,7 @@ use crossterm::style::{Attribute, SetForegroundColor};
 use crossterm::ExecutableCommand;
 use crossterm::{cursor::MoveTo, style::SetAttribute};
 
-use crate::{config::theme::ThemeColors, scores::stats::Stats};
+use crate::{config::theme::ThemeColors, scores::Stats};
 
 use super::Game;
 
