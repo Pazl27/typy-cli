@@ -1,8 +1,9 @@
-use crate::error::{Error, Result};
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use serde_json::to_writer_pretty;
 use std::fs::{self, File};
+
+use crate::error::{Error, Result};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Averages {
@@ -61,35 +62,47 @@ impl Data {
     }
 
     pub fn get_data() -> Result<Data> {
-        let mut path = dirs::home_dir().ok_or_else(|| Error::custom("Failed to get home directory"))?;
+        let mut path =
+            dirs::home_dir().ok_or_else(|| Error::custom("Failed to get home directory"))?;
         path.push(".local/share/typy/scores.json");
 
         if !path.exists() {
             if let Some(parent) = path.parent() {
-                fs::create_dir_all(parent).map_err(|e| Error::custom(format!("Failed to create directories: {}", e)))?;
+                fs::create_dir_all(parent)
+                    .map_err(|e| Error::custom(format!("Failed to create directories: {}", e)))?;
             }
-            File::create(&path).map_err(|e| Error::custom(format!("Failed to create scores.json file: {}", e)))?;
+            File::create(&path)
+                .map_err(|e| Error::custom(format!("Failed to create scores.json file: {}", e)))?;
         }
 
-        let file = File::open(&path).map_err(|e| Error::custom(format!("Failed to open scores.json file: {}", e)))?;
+        let file = File::open(&path)
+            .map_err(|e| Error::custom(format!("Failed to open scores.json file: {}", e)))?;
         let data: Data = match serde_json::from_reader(file) {
             Ok(data) => data,
             Err(e) if e.is_eof() => Data::default(),
-            Err(e) => return Err(Error::custom(format!("Failed to read scores from file: {}", e))),
+            Err(e) => {
+                return Err(Error::custom(format!(
+                    "Failed to read scores from file: {}",
+                    e
+                )))
+            }
         };
         Ok(data)
     }
 
     fn write_to_file(data: Data) -> Result<()> {
-        let mut path = dirs::home_dir().ok_or_else(|| Error::custom("Failed to get home directory"))?;
+        let mut path =
+            dirs::home_dir().ok_or_else(|| Error::custom("Failed to get home directory"))?;
         path.push(".local/share/typy/scores.json");
 
         if !path.exists() {
             return Err(Error::custom("File does not exist"));
         }
 
-        let mut file = File::create(&path).map_err(|e| Error::custom(format!("Failed to truncate scores.json file: {}", e)))?;
-        to_writer_pretty(&mut file, &data).map_err(|e| Error::custom(format!("Failed to write scores to file: {}", e)))?;
+        let mut file = File::create(&path)
+            .map_err(|e| Error::custom(format!("Failed to truncate scores.json file: {}", e)))?;
+        to_writer_pretty(&mut file, &data)
+            .map_err(|e| Error::custom(format!("Failed to write scores to file: {}", e)))?;
 
         Ok(())
     }

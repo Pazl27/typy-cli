@@ -1,6 +1,7 @@
 mod finder;
 
 use finder::find;
+
 use crate::error::Result; 
 
 const LENGTH: i32 = 70;

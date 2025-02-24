@@ -1,8 +1,8 @@
-use crate::error::{Result, Error}; 
 use rand::Rng;
 use std::str::FromStr;
 
 use crate::config::mode_settings::ModeSettings;
+use crate::error::{Error, Result};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum ModeType {
@@ -57,7 +57,11 @@ impl Mode {
             modes.push(ModeType::Normal);
         }
 
-        Ok(Mode { modes, duration: 0, settings })
+        Ok(Mode {
+            modes,
+            duration: 0,
+            settings,
+        })
     }
 
     pub fn add_duration(mut self, duration: u64) -> Self {
@@ -155,4 +159,3 @@ mod mode_tests {
         assert_eq!(list[0].len(), 2);
     }
 }
-

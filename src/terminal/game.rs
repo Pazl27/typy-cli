@@ -1,4 +1,4 @@
-use crate::error::{Error, Result};
+use super::keyboard::{handle_input, InputAction};
 use crossterm::cursor::{self, SetCursorStyle};
 use crossterm::event::poll;
 use crossterm::{
@@ -8,7 +8,6 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, Clear, ClearType},
     ExecutableCommand,
 };
-use super::keyboard::{handle_input, InputAction};
 use std::io::stdout;
 use std::io::Write;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -18,6 +17,7 @@ use std::time::{Duration, Instant};
 
 use crate::config::cursor_style::CursorKind;
 use crate::config::theme::ThemeColors;
+use crate::error::{Error, Result};
 use crate::mode::Mode;
 use crate::scores::finish_overview;
 use crate::scores::progress::{Data, Score};
@@ -74,9 +74,11 @@ pub fn run(mode: Mode, theme: ThemeColors) -> Result<()> {
 
     let mut stats = Stats::new();
 
-    setup_terminal(&stdout).map_err(|e| Error::custom(format!("Failed to setup terminal: {}", e)))?;
+    setup_terminal(&stdout)
+        .map_err(|e| Error::custom(format!("Failed to setup terminal: {}", e)))?;
 
-    let (x, y) = super::calc_middle_for_text().map_err(|e| Error::custom(format!("Failed to calculate terminal size: {}", e)))?;
+    let (x, y) = super::calc_middle_for_text()
+        .map_err(|e| Error::custom(format!("Failed to calculate terminal size: {}", e)))?;
 
     for i in 0..game.list.len() {
         print_words(
@@ -136,7 +138,9 @@ pub fn run(mode: Mode, theme: ThemeColors) -> Result<()> {
                 .execute(SetForegroundColor(theme.accent))
                 .map_err(|e| Error::custom(format!("Failed to set foreground color: {}", e)))?;
             print!("{:02}", remaining);
-            stdout.flush().map_err(|e| Error::custom(format!("Failed to flush stdout: {}", e)))?;
+            stdout
+                .flush()
+                .map_err(|e| Error::custom(format!("Failed to flush stdout: {}", e)))?;
             stdout
                 .execute(MoveTo(
                     x + game.player.position_x as u16,
@@ -149,7 +153,9 @@ pub fn run(mode: Mode, theme: ThemeColors) -> Result<()> {
             remaining_prev = remaining;
         }
 
-        if poll(Duration::from_millis(5)).map_err(|e| Error::custom(format!("Failed to poll for events: {}", e)))? {
+        if poll(Duration::from_millis(5))
+            .map_err(|e| Error::custom(format!("Failed to poll for events: {}", e)))?
+        {
             if let Ok(Event::Key(KeyEvent {
                 code, modifiers, ..
             })) = read().map_err(|e| Error::custom(format!("Failed to read event: {}", e)))
@@ -176,10 +182,12 @@ pub fn run(mode: Mode, theme: ThemeColors) -> Result<()> {
             stats.accuracy() as f32,
         );
         Data::save_data(score).map_err(|e| Error::custom(format!("Failed to save data: {}", e)))?;
-        finish_overview::show_stats(&stdout, stats, &theme).map_err(|e| Error::custom(format!("Failed to show stats: {}", e)))?;
+        finish_overview::show_stats(&stdout, stats, &theme)
+            .map_err(|e| Error::custom(format!("Failed to show stats: {}", e)))?;
     }
 
-    reset_terminal(&stdout).map_err(|e| Error::custom(format!("Failed to reset terminal: {}", e)))?;
+    reset_terminal(&stdout)
+        .map_err(|e| Error::custom(format!("Failed to reset terminal: {}", e)))?;
     timer_expired.store(true, Ordering::Relaxed);
     timer_thread
         .join()

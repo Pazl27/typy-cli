@@ -1,14 +1,12 @@
-use std::io::Write;
-
-use crate::error::{Error, Result};
 use crossterm::event::KeyCode;
 use crossterm::style::{Attribute, SetForegroundColor};
 use crossterm::ExecutableCommand;
 use crossterm::{cursor::MoveTo, style::SetAttribute};
-
-use crate::{config::theme::ThemeColors, scores::Stats};
+use std::io::Write;
 
 use super::Game;
+use crate::error::{Error, Result};
+use crate::{config::theme::ThemeColors, scores::Stats};
 
 const MAX_WORD_LENGTH: usize = 100;
 
@@ -49,7 +47,9 @@ pub fn handle_input(
             game.player.position_x += 1;
         }
 
-        stdout.flush().map_err(|e| Error::custom(format!("Failed to flush stdout: {}", e)))?;
+        stdout
+            .flush()
+            .map_err(|e| Error::custom(format!("Failed to flush stdout: {}", e)))?;
     }
     Ok(InputAction::None)
 }

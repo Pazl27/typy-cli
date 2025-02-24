@@ -1,10 +1,3 @@
-use std::io::{stdout, Write};
-use std::time::Duration;
-
-use crate::terminal;
-
-use super::*;
-use crate::error::{Error, Result};
 use comfy_table::presets::UTF8_FULL;
 use comfy_table::*;
 use crossterm::cursor::MoveTo;
@@ -12,6 +5,12 @@ use crossterm::event::{poll, read, Event, KeyEvent};
 use crossterm::style::ResetColor;
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode, size, Clear, ClearType};
 use crossterm::{cursor, ExecutableCommand};
+use std::io::{stdout, Write};
+use std::time::Duration;
+
+use super::*;
+use crate::error::{Error, Result};
+use crate::terminal;
 
 const TABLE_WIDTH: u16 = 48;
 
@@ -24,7 +23,9 @@ pub fn draw() -> Result<()> {
 
     enable_raw_mode()?;
     loop {
-        if poll(Duration::from_millis(5)).map_err(|e| Error::custom(format!("Failed to poll for events: {}", e)))? {
+        if poll(Duration::from_millis(5))
+            .map_err(|e| Error::custom(format!("Failed to poll for events: {}", e)))?
+        {
             if let Ok(Event::Key(KeyEvent {
                 code, modifiers, ..
             })) = read().map_err(|e| Error::custom(format!("Failed to read event: {}", e)))
