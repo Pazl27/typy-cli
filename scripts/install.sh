@@ -5,7 +5,7 @@ BIN_NAME="typy"
 LOCAL_DIR="$HOME/.local/share"
 CONFIG_PATH="$LOCAL_DIR/$BIN_NAME/english.txt"
 INSTALL_DIR="$HOME/your-repo"
-GIT_TAG="v0.7.0"
+GIT_TAG="v0.8.0"
 
 # Function to move binary with appropriate privileges
 move_binary() {
