@@ -68,7 +68,7 @@ mod finder_tests {
 
     #[test]
     fn test_read_file() {
-        let words = read_file("./resources/words.txt").unwrap();
+        let words = read_file("./resources/english.txt").unwrap();
         assert_eq!(words.len(), 7776);
     }
 

@@ -38,11 +38,18 @@ pub struct ModesTable {
 }
 
 #[derive(Serialize, Deserialize)]
+#[derive(Clone)]
+pub struct LanguageTable {
+    pub lang: Option<String>
+}
+
+#[derive(Serialize, Deserialize)]
 pub struct ConfigToml {
     theme: Option<ThemeTable>,
     graph: Option<GraphTable>,
     cursor: Option<CursorTable>,
     modes: Option<ModesTable>,
+    language: Option<LanguageTable>,
 }
 
 impl ConfigToml {
@@ -83,6 +90,10 @@ impl ConfigToml {
     pub fn get_modes(&self) -> Option<ModesTable> {
         self.modes.clone()
     }
+
+    pub fn get_language(&self) -> Option<LanguageTable> {
+        self.language.clone()
+    }
 }
 
 impl Default for ConfigToml {
@@ -92,6 +103,7 @@ impl Default for ConfigToml {
             graph: None,
             cursor: None,
             modes: None,
+            language: None,
         }
     }
 }

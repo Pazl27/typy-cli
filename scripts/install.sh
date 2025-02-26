@@ -3,7 +3,7 @@
 # Define paths
 BIN_NAME="typy"
 LOCAL_DIR="$HOME/.local/share"
-CONFIG_PATH="$LOCAL_DIR/$BIN_NAME/words.txt"
+CONFIG_PATH="$LOCAL_DIR/$BIN_NAME/english.txt"
 INSTALL_DIR="$HOME/your-repo"
 GIT_TAG="v0.7.0"
 
@@ -36,6 +36,6 @@ move_binary
 
 # Move any required files to the ~/.local folder (e.g., configuration files)
 echo "Setting up configuration files..."
-curl -L https://github.com/Pazl27/typy-cli/releases/download/$GIT_TAG/words.txt -o "$CONFIG_PATH"
+curl -L https://github.com/Pazl27/typy-cli/releases/download/$GIT_TAG/english.txt -o "$CONFIG_PATH"
 
 echo "Installation complete! You can now run the CLI tool by typing '$BIN_NAME' in your terminal."

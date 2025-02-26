@@ -4,7 +4,7 @@
 BIN_NAME="typy"
 LOCAL_DIR="$HOME/.local/share"
 BIN_PATH="/usr/bin/$BIN_NAME"
-CONFIG_PATH="$LOCAL_DIR/$BIN_NAME/words.txt"
+CONFIG_PATH="$LOCAL_DIR/$BIN_NAME/english.txt"
 CONFIG_DIR="$LOCAL_DIR/$BIN_NAME"
 
 # Function to remove the binary with appropriate privileges
