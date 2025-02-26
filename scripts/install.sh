@@ -6,7 +6,7 @@ LOCAL_DIR="$HOME/.local/share"
 BIN_PATH="$/usr/bin"
 CONFIG_PATH="$LOCAL_DIR/$BIN_NAME/words.txt"
 INSTALL_DIR="$HOME/your-repo"
-GIT_TAG="v0.5.0-alpha"
+GIT_TAG="v0.7.0"
 
 # Create directories if they don't exist
 mkdir -p "$LOCAL_DIR/$BIN_NAME"
