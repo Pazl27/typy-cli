@@ -78,18 +78,8 @@ pub fn run(mode: Mode, theme: ThemeColors) -> Result<()> {
 
     let (x, y) = super::calc_middle_for_text().context("Failed to calculate terminal size")?;
 
-    for i in 0..game.list.len() {
-        print_words(
-            x,
-            y + i as u16,
-            &game
-                .list
-                .get(i)
-                .context("Failed to get word from list")?
-                .to_vec(),
-            &stdout,
-            &theme,
-        )?;
+    for (i, words) in game.list.iter().enumerate() {
+        print_words(x, y + i as u16, words, &stdout, &theme)?;
         stdout
             .execute(MoveTo(x, y as u16))
             .context("Failed to move cursor")?;
