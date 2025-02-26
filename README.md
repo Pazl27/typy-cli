@@ -105,6 +105,9 @@ style = "SteadyBar" # possible options are: DefaultUserShape, BlinkingBlock, Ste
 default_mode = "normal" # possible modes are "normal"|"uppercase"|"punctuation", combinations of modes is also possible e.g: "uppercase, punctuation"
 uppercase_chance = "3" # possible are values between 0 and 1, if value is too high it gets clamped to 1, if too low it gets clamped to 0
 punctuation_chance = "0.5" # possible are values between 0 and 1, if value is too high it gets clamped to 1, if too low it gets clamped to 0
+
+[language]
+lang = "english" # select your desired language
 ```
 
 To apply the configuration, you can either edit the `config.toml` file directly or use the `typy -c` command to to open the file in your preferred editor:
@@ -126,6 +129,18 @@ typy -s
 This will display the stats of the last 10 games and looks something like this:
 ![Stats](./docs/assets/snapshot_2025-02-24_00-28-16.png)
 To close this view press `Ctrl + c` or `esc`.
+
+## Language
+The language files are located at `~/.local/share/typy/`. The default language is `english`. You can change the language by editing the `config.toml` file or by using the
+`typy -c` command. If you want to add a new language you can create a new file in the `~/.local/share/typy/` directory and add the words in the following format:
+```txt
+word1
+word2
+...
+```
+The language file should be named after the language you want to add. For example, if you want to add a German language file, you would create a file named `german.txt` and add the German words to it.
+If you want to use the new language you need to change the `lang` field in the `config.toml` file to the name of the language file without the `.txt` extension.
+If you want to provide a new language to the Typy repository, feel free to create a pull request. Atm I only have the `english.txt` file in the repository.
 
 ## Uninstall
 ```bash
