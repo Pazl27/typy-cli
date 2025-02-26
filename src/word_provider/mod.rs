@@ -1,7 +1,7 @@
 mod finder;
 
-use finder::find;
 use anyhow::Result;
+use finder::find;
 
 const LENGTH: i32 = 70;
 
@@ -14,7 +14,6 @@ pub fn get_words(res: &str) -> Result<Vec<Vec<String>>> {
 }
 
 #[cfg(test)]
-
 mod word_provider_tests {
     use super::*;
 

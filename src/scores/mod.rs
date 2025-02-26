@@ -1,6 +1,6 @@
 pub mod finish_overview;
-mod stats;
-pub mod progress;
 mod graph;
+pub mod progress;
+mod stats;
 
 pub use stats::Stats;

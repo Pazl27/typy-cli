@@ -82,7 +82,7 @@ pub fn run(mode: Mode, theme: ThemeColors) -> Result<()> {
     for (i, words) in game.list.iter().enumerate() {
         print_words(x, y + i as u16, words, &stdout, &theme)?;
         stdout
-            .execute(MoveTo(x, y as u16))
+            .execute(MoveTo(x, y))
             .context("Failed to move cursor")?;
     }
 
@@ -150,7 +150,7 @@ pub fn run(mode: Mode, theme: ThemeColors) -> Result<()> {
                     game.quit = true;
                     break;
                 }
-                match handle_input(&mut game, &mut stdout, code, &mut stats, &theme, x, y)? {
+                match handle_input(&mut game, &stdout, code, &mut stats, &theme, x, y)? {
                     InputAction::Continue => continue,
                     InputAction::Break => break,
                     InputAction::None => {}
@@ -203,7 +203,7 @@ fn reset_terminal(mut stdout: &std::io::Stdout) -> Result<()> {
 fn print_words(
     x: u16,
     y: u16,
-    words: &Vec<String>,
+    words: &[String],
     mut stdout: &std::io::Stdout,
     theme: &ThemeColors,
 ) -> Result<()> {

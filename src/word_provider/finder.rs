@@ -42,13 +42,13 @@ fn read_file(path: &str) -> Result<Vec<String>, std::io::Error> {
     Ok(words)
 }
 
-fn random_word(words: &Vec<String>) -> String {
+fn random_word(words: &[String]) -> String {
     let mut rng = rand::rng();
     let word = words.choose(&mut rng).unwrap();
     word.to_string()
 }
 
-fn check_if_fits(word: &String, fitted_words: &mut Vec<String>, lenght: i32) -> bool {
+fn check_if_fits(word: &str, fitted_words: &mut [String], lenght: i32) -> bool {
     let list_length: i32 = fitted_words
         .iter()
         .map(|s| s.chars().count() as i32)
@@ -84,8 +84,8 @@ mod finder_tests {
         let word = "Hello".to_string();
         let mut fitted_words = Vec::new();
         let lenght = 5;
-        assert_eq!(check_if_fits(&word, &mut fitted_words, lenght), true);
+        assert!(check_if_fits(&word, &mut fitted_words, lenght));
         fitted_words.push("Hello".to_string());
-        assert_eq!(check_if_fits(&word, &mut fitted_words, lenght), false);
+        assert!(!check_if_fits(&word, &mut fitted_words, lenght));
     }
 }
