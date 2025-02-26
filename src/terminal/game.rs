@@ -67,9 +67,9 @@ pub fn run(mode: Mode, theme: ThemeColors) -> Result<()> {
     let mut stdout = stdout();
 
     let language = language::Language::new();
-    let file_name = format!(".local/share/typy/{}.txt", language.lang);
-    let mut game =
-        Game::new(word_provider::get_words(&file_name).context("Failed to get words from file")?);
+    let mut game = Game::new(
+        word_provider::get_words(&language.lang).context("Failed to get words from file")?,
+    );
 
     mode.transform(&mut game.list);
 

@@ -5,10 +5,10 @@ use finder::find;
 
 const LENGTH: i32 = 70;
 
-pub fn get_words(res: &str) -> Result<Vec<Vec<String>>> {
+pub fn get_words(language: &str) -> Result<Vec<Vec<String>>> {
     let mut words = Vec::new();
     for _ in 0..3 {
-        words.push(find(LENGTH, res)?);
+        words.push(find(language, LENGTH)?);
     }
     Ok(words)
 }
@@ -19,7 +19,7 @@ mod word_provider_tests {
 
     #[test]
     fn test_get_words() {
-        let words = get_words("resources/english.txt");
+        let words = get_words("english");
 
         for word in &words.unwrap() {
             let mut length = 0;
