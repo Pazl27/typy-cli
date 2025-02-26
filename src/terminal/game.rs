@@ -1,3 +1,4 @@
+use super::keyboard::{handle_input, InputAction};
 use anyhow::{Context, Result};
 use crossterm::cursor::{self, SetCursorStyle};
 use crossterm::event::poll;
@@ -8,7 +9,6 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, Clear, ClearType},
     ExecutableCommand,
 };
-use super::keyboard::{handle_input, InputAction};
 use std::io::stdout;
 use std::io::Write;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -17,6 +17,7 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use crate::config::cursor_style::CursorKind;
+use crate::config::language;
 use crate::config::theme::ThemeColors;
 use crate::mode::Mode;
 use crate::scores::finish_overview;
@@ -65,10 +66,10 @@ impl Game {
 pub fn run(mode: Mode, theme: ThemeColors) -> Result<()> {
     let mut stdout = stdout();
 
-    let mut game = Game::new(
-        word_provider::get_words(".local/share/typy/words.txt")
-            .context("Failed to get words from file")?,
-    );
+    let language = language::Language::new();
+    let file_name = format!(".local/share/typy/{}.txt", language.lang);
+    let mut game =
+        Game::new(word_provider::get_words(&file_name).context("Failed to get words from file")?);
 
     mode.transform(&mut game.list);
 
@@ -159,7 +160,6 @@ pub fn run(mode: Mode, theme: ThemeColors) -> Result<()> {
     }
 
     if !game.quit {
-
         stdout.execute(cursor::Hide)?;
         let score = Score::new(
             stats.wpm() as u32,
@@ -243,4 +243,3 @@ fn start_timer(
 
     Ok(())
 }
-

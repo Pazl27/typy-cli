@@ -53,10 +53,10 @@ If you prefer to get the newest version and compile it yourself, follow these st
     sudo mv target/release/typy /usr/local/bin/
     ```
 
-4. Ensure the `words.txt` file is in the correct location:
+4. Ensure the `english.txt` file is in the correct location:
     ```bash
     mkdir -p ~/.local/share/typy
-    cp resources/words.txt ~/.local/share/typy/
+    cp resources/english.txt ~/.local/share/typy/
     ```
 
 ## Flags

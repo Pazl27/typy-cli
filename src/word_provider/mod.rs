@@ -20,7 +20,7 @@ mod word_provider_tests {
 
     #[test]
     fn test_get_words() {
-        let words = get_words("resources/words.txt");
+        let words = get_words("resources/english.txt");
 
         for word in &words.unwrap() {
             let mut length = 0;
