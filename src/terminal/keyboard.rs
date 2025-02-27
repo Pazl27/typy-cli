@@ -245,7 +245,7 @@ fn add_incorrect_char(
     let position_x = game.player.position_x;
     let words = game.get_word_string(game.player.position_y);
 
-    if words.len() >= MAX_WORD_LENGTH as usize {
+    if words.len() >= MAX_WORD_LENGTH {
         return Ok(InputAction::Continue);
     }
 

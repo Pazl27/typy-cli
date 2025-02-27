@@ -1,13 +1,12 @@
-use std::fs;
-use toml;
-use serde::{Deserialize, Serialize};
 use dirs::home_dir;
-use std::path::PathBuf;
 use lazy_static::lazy_static;
+use serde::{Deserialize, Serialize};
+use std::fs;
+use std::path::PathBuf;
 use std::sync::Mutex;
+use toml;
 
-#[derive(Serialize, Deserialize)]
-#[derive(Clone)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct ThemeTable {
     pub fg: Option<String>,
     pub missing: Option<String>,
@@ -15,35 +14,31 @@ pub struct ThemeTable {
     pub accent: Option<String>,
 }
 
-#[derive(Serialize, Deserialize)]
-#[derive(Clone)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct GraphTable {
     pub data: Option<String>,
     pub title: Option<String>,
     pub axis: Option<String>,
 }
 
-#[derive(Serialize, Deserialize)]
-#[derive(Clone)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct CursorTable {
     pub style: Option<String>,
 }
 
-#[derive(Serialize, Deserialize)]
-#[derive(Clone)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct ModesTable {
     pub default_mode: Option<String>,
     pub uppercase_chance: Option<String>,
     pub punctuation_chance: Option<String>,
 }
 
-#[derive(Serialize, Deserialize)]
-#[derive(Clone)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct LanguageTable {
-    pub lang: Option<String>
+    pub lang: Option<String>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Default)]
 pub struct ConfigToml {
     theme: Option<ThemeTable>,
     graph: Option<GraphTable>,
@@ -96,18 +91,6 @@ impl ConfigToml {
     }
 }
 
-impl Default for ConfigToml {
-    fn default() -> Self {
-        ConfigToml { 
-            theme: None,
-            graph: None,
-            cursor: None,
-            modes: None,
-            language: None,
-        }
-    }
-}
-
 // Declare the static instance of ConfigToml using lazy_static
 lazy_static! {
     static ref CONFIG: Mutex<ConfigToml> = Mutex::new(ConfigToml::new());
@@ -117,4 +100,3 @@ lazy_static! {
 pub fn get_config() -> &'static Mutex<ConfigToml> {
     &CONFIG
 }
-

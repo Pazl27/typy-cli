@@ -12,7 +12,6 @@ pub struct ThemeColors {
 
 impl ThemeColors {
     pub fn new() -> Self {
-
         let theme_colors: ThemeColors = match get_config().lock().unwrap().get_theme() {
             Some(colors) => {
                 let fg = colors
@@ -67,20 +66,49 @@ fn hex_to_rgb(hex: &str) -> Option<Color> {
     }
 }
 
-
 #[cfg(test)]
 mod theme_tests {
     use super::*;
 
     #[test]
     fn test_hex_to_rgb() {
-        assert_eq!(hex_to_rgb("#ffffff"), Some(Color::Rgb { r: 255, g: 255, b: 255 }));
+        assert_eq!(
+            hex_to_rgb("#ffffff"),
+            Some(Color::Rgb {
+                r: 255,
+                g: 255,
+                b: 255
+            })
+        );
         assert_eq!(hex_to_rgb("#000000"), Some(Color::Rgb { r: 0, g: 0, b: 0 }));
-        assert_eq!(hex_to_rgb("#ff0000"), Some(Color::Rgb { r: 255, g: 0, b: 0 }));
-        assert_eq!(hex_to_rgb("#00ff00"), Some(Color::Rgb { r: 0, g: 255, b: 0 }));
-        assert_eq!(hex_to_rgb("#0000ff"), Some(Color::Rgb { r: 0, g: 0, b: 255 }));
-        assert_eq!(hex_to_rgb("#123456"), Some(Color::Rgb { r: 18, g: 52, b: 86 }));
-        assert_eq!(hex_to_rgb("#abcdef"), Some(Color::Rgb { r: 171, g: 205, b: 239 }));
+        assert_eq!(
+            hex_to_rgb("#ff0000"),
+            Some(Color::Rgb { r: 255, g: 0, b: 0 })
+        );
+        assert_eq!(
+            hex_to_rgb("#00ff00"),
+            Some(Color::Rgb { r: 0, g: 255, b: 0 })
+        );
+        assert_eq!(
+            hex_to_rgb("#0000ff"),
+            Some(Color::Rgb { r: 0, g: 0, b: 255 })
+        );
+        assert_eq!(
+            hex_to_rgb("#123456"),
+            Some(Color::Rgb {
+                r: 18,
+                g: 52,
+                b: 86
+            })
+        );
+        assert_eq!(
+            hex_to_rgb("#abcdef"),
+            Some(Color::Rgb {
+                r: 171,
+                g: 205,
+                b: 239
+            })
+        );
         assert_eq!(hex_to_rgb("#12345"), None);
         assert_eq!(hex_to_rgb("#1234567"), None);
         assert_eq!(hex_to_rgb("123456"), None);
