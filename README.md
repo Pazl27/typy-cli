@@ -32,7 +32,7 @@ To install Typy, you can use the [Cargo] package manager:
 [Cargo]: https://doc.rust-lang.org/cargo/
 
 ```bash
-cargo install --git "https://github.com/Pazl27/typy-cli.git" --tag "v0.8.0"
+cargo install --git "https://github.com/Pazl27/typy-cli.git" --tag "v0.9.0"
 ```
 
 If you prefer to get the newest version and compile it yourself, follow these steps:
