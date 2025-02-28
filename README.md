@@ -156,5 +156,5 @@ If you want to provide a new language to the Typy repository, feel free to creat
 
 ## Uninstall
 ```bash
-cargo uninstall typy-cli
+cargo uninstall typy
 ```
