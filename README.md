@@ -27,13 +27,13 @@ word and asks you to type it as fast as possible. The game tracks your typing sp
 different game modes, such as uppercase and punctuation, to help you improve your typing skills in different areas.
 
 ## Installation
-To install Typy on Linux, you can use the following command:
+To install Typy, you can use the [Cargo] package manager:
+
+[Cargo]: https://doc.rust-lang.org/cargo/
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/Pazl27/typy-cli/master/scripts/install.sh | bash
+cargo install --git "https://github.com/Pazl27/typy-cli.git" --tag "v0.8.0"
 ```
-
-This command downloads and runs the installation script from the Typy GitHub repository. The script will handle the installation process for you, ensuring that Typy is set up correctly on your system.
 
 If you prefer to get the newest version and compile it yourself, follow these steps:
 
@@ -156,5 +156,5 @@ If you want to provide a new language to the Typy repository, feel free to creat
 
 ## Uninstall
 ```bash
-curl -sSL https://raw.githubusercontent.com/Pazl27/typy-cli/master/scripts/uninstall.sh | bash
+cargo uninstall typy-cli
 ```

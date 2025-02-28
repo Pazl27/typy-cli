@@ -1,26 +1,48 @@
-use anyhow::Result;
+use anyhow::{bail, Context, Result};
 use dirs::home_dir;
+use reqwest::blocking::get;
 use std::{
-    fs::File,
+    fs::{create_dir_all, write, File},
     io::{BufRead, BufReader},
     path::PathBuf,
+    sync::LazyLock,
 };
 
 use rand::seq::IndexedRandom;
 
-pub fn find(lenght: i32, res: &str) -> Result<Vec<String>, std::io::Error> {
-    let path = if res.contains("resources") {
-        PathBuf::from(res)
+static WORDS_DIR: LazyLock<Option<PathBuf>> = LazyLock::new(|| {
+    if cfg!(test) {
+        Some(PathBuf::from("./resources/"))
     } else {
-        let mut home_path = home_dir().ok_or(std::io::Error::new(
-            std::io::ErrorKind::NotFound,
-            "Home directory not found",
-        ))?;
-        home_path.push(res);
-        home_path
+        home_dir().map(|p| p.join(".local/share/typy"))
+    }
+});
+const WORDS_URL: &str =
+    "https://raw.githubusercontent.com/Pazl27/typy-cli/refs/heads/master/resources/";
+
+pub fn find(language: &str, lenght: i32) -> Result<Vec<String>> {
+    let Some(words_file) = WORDS_DIR
+        .as_ref()
+        .map(|p| p.join(format!("{language}.txt")))
+    else {
+        bail!("Unable to find home directory");
     };
 
-    let words = read_file(path.to_str().unwrap())?;
+    // Download words file if not already present
+    if !words_file.exists() {
+        create_dir_all(words_file.parent().unwrap())?;
+        let language_url = format!("{WORDS_URL}{language}.txt");
+        let resp = get(&language_url)
+            .context("Failed to download words file from ".to_owned() + &language_url)?;
+        write(
+            &words_file,
+            resp.text()
+                .context("Failed to extract text from words file download")?,
+        )
+        .with_context(|| format!("Failed to save words file to {words_file:#?}"))?;
+    }
+
+    let words = read_file(words_file.to_str().unwrap())?;
     let mut word = random_word(&words);
 
     let mut fitted_words = Vec::new();
@@ -42,13 +64,13 @@ fn read_file(path: &str) -> Result<Vec<String>, std::io::Error> {
     Ok(words)
 }
 
-fn random_word(words: &Vec<String>) -> String {
+fn random_word(words: &[String]) -> String {
     let mut rng = rand::rng();
     let word = words.choose(&mut rng).unwrap();
     word.to_string()
 }
 
-fn check_if_fits(word: &String, fitted_words: &mut Vec<String>, lenght: i32) -> bool {
+fn check_if_fits(word: &str, fitted_words: &mut [String], lenght: i32) -> bool {
     let list_length: i32 = fitted_words
         .iter()
         .map(|s| s.chars().count() as i32)
@@ -84,8 +106,8 @@ mod finder_tests {
         let word = "Hello".to_string();
         let mut fitted_words = Vec::new();
         let lenght = 5;
-        assert_eq!(check_if_fits(&word, &mut fitted_words, lenght), true);
+        assert!(check_if_fits(&word, &mut fitted_words, lenght));
         fitted_words.push("Hello".to_string());
-        assert_eq!(check_if_fits(&word, &mut fitted_words, lenght), false);
+        assert!(!check_if_fits(&word, &mut fitted_words, lenght));
     }
 }

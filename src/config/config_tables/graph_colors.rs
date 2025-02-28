@@ -10,7 +10,6 @@ pub struct Graph {
 
 impl Graph {
     pub fn new() -> Self {
-
         let theme_colors: Graph = match get_config().lock().unwrap().get_graph() {
             Some(colors) => {
                 let data = colors

@@ -57,7 +57,11 @@ impl Mode {
             modes.push(ModeType::Normal);
         });
 
-        Ok(Mode { modes, duration: 0, settings })
+        Ok(Mode {
+            modes,
+            duration: 0,
+            settings,
+        })
     }
 
     pub fn add_duration(mut self, duration: u64) -> Self {
@@ -65,9 +69,9 @@ impl Mode {
         self
     }
 
-    pub fn transform(&self, list: &mut Vec<Vec<String>>) {
+    pub fn transform(&self, list: &mut [Vec<String>]) {
         let mut rng = rand::rng();
-        let punctuations = vec![".", ",", "!", "?", ";", ":", "-"];
+        let punctuations = [".", ",", "!", "?", ";", ":", "-"];
 
         for mode in &self.modes {
             match mode {
@@ -90,11 +94,11 @@ impl Mode {
                     for sublist in list.iter_mut() {
                         let len = sublist.len();
                         if len > 1 {
-                            for i in 0..len - 1 {
+                            for item in sublist.iter_mut().take(len - 1) {
                                 if rng.random_bool(self.settings.punctuation_chance.into()) {
                                     let punctuation =
                                         punctuations[rng.random_range(0..punctuations.len())];
-                                    sublist[i].push_str(punctuation);
+                                    item.push_str(punctuation);
                                 }
                             }
                         }
@@ -155,4 +159,3 @@ mod mode_tests {
         assert_eq!(list[0].len(), 2);
     }
 }
-

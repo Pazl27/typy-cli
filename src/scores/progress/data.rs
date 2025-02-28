@@ -151,7 +151,7 @@ impl Score {
         self.timestamp.format("%H:%M:%S").to_string()
     }
 
-    pub fn sort_scores(scores: &mut Vec<Score>) {
+    pub fn sort_scores(scores: &mut [Score]) {
         scores.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
     }
 
@@ -174,7 +174,7 @@ impl Score {
 
 impl Averages {
     fn new(score: Score) -> Result<Self> {
-        Ok(Self::calculate_averages(score)?)
+        Self::calculate_averages(score)
     }
     fn calculate_averages(score: Score) -> Result<Averages> {
         let averages = Data::get_averages()?;
@@ -186,9 +186,9 @@ impl Averages {
         let mut raw_count = averages.raw_avg.count;
         let mut accuracy_count = averages.accuracy_avg.count;
 
-        wpm_sum += score.wpm as u32;
-        raw_sum += score.raw as u32;
-        accuracy_sum += score.accuracy as f32;
+        wpm_sum += score.wpm;
+        raw_sum += score.raw;
+        accuracy_sum += score.accuracy;
 
         wpm_count += 1;
         raw_count += 1;

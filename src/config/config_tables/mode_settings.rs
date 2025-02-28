@@ -16,7 +16,8 @@ impl ModeSettings {
                 let default_modes = settings
                     .default_mode
                     .map(|m| {
-                        let modes: Vec<ModeType> = m.split(',')
+                        let modes: Vec<ModeType> = m
+                            .split(',')
                             .filter_map(|mode| ModeType::from_str(mode.trim()).ok())
                             .collect();
                         if modes.contains(&ModeType::Normal) {
@@ -37,7 +38,11 @@ impl ModeSettings {
                     .map(|c| c.clamp(0.0, 1.0))
                     .unwrap_or(0.2);
 
-                ModeSettings { default_modes, uppercase_chance, punctuation_chance }
+                ModeSettings {
+                    default_modes,
+                    uppercase_chance,
+                    punctuation_chance,
+                }
             }
             None => ModeSettings::default(),
         };
