@@ -1671,7 +1671,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "typy-cli"
+name = "typy"
 version = "0.7.0"
 dependencies = [
  "anyhow",
