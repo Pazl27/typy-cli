@@ -59,6 +59,18 @@ If you prefer to get the newest version and compile it yourself, follow these st
     cp resources/english.txt ~/.local/share/typy/
     ```
 
+If you have Nix with flakes enabled, you can install typy-cli directly:
+
+```bash
+nix profile install github:Pazl27/typy-cli
+```
+
+Or to run without installing:
+
+```bash
+nix run github:Pazl27/typy-cli
+```
+
 ## Flags
 The `Typy` application supports the following flags:
 
