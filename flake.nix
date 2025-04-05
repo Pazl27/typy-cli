@@ -38,7 +38,7 @@
             mkdir -p $out/share/typy
             cp $src/resources/english.txt $out/share/typy/english.txt
 
-            wrapProgram $out/bin/typy-cli \
+            wrapProgram $out/bin/typy \
             --run "mkdir -p ~/.local/share/typy" \
             --run "cp -n $out/share/typy/english.txt ~/.local/share/typy/english.txt"
             '';
