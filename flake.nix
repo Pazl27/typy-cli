@@ -8,15 +8,25 @@
     };
     flake-utils.url = "github:numtide/flake-utils";
   };
-  outputs = { self, nixpkgs, rust-overlay, flake-utils, ... }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      rust-overlay,
+      flake-utils,
+      ...
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
       let
         overlays = [ (import rust-overlay) ];
         pkgs = import nixpkgs {
           inherit system overlays;
         };
-        
-        buildInputs = with pkgs; [ ];
+
+        buildInputs = with pkgs; [
+          openssl
+        ];
 
         nativeBuildInputs = with pkgs; [
           rust-bin.stable.latest.default
@@ -41,7 +51,7 @@
             wrapProgram $out/bin/typy \
             --run "mkdir -p ~/.local/share/typy" \
             --run "cp -n $out/share/typy/english.txt ~/.local/share/typy/english.txt"
-            '';
+          '';
 
           meta = with pkgs.lib; {
             description = "typy-cli - Minimalistic Monkeytype clone for the CLI";
@@ -49,7 +59,10 @@
             license = licenses.mit;
           };
         };
+        apps.default = {
+          type = "app";
+          program = "${self.packages.${system}.default}/bin/typy";
+        };
       }
-  );
+    );
 }
-
