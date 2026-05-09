@@ -168,10 +168,9 @@ pub fn run(mode: Mode, theme: ThemeColors) -> Result<()> {
         );
         Data::save_data(score).context("Failed to save data")?;
         finish_overview::show_stats(&stdout, stats, &theme).context("Failed to show stats")?;
+    } else {
+        reset_terminal(&stdout).context("Failed to reset terminal")?;
     }
-
-    reset_terminal(&stdout).context("Failed to reset terminal")?;
-    timer_expired.store(true, Ordering::Relaxed);
     timer_thread
         .join()
         .map_err(|e| anyhow::anyhow!("Failed to join timer thread: {:?}", e))?;
