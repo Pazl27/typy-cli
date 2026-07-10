@@ -20,7 +20,9 @@ static WORDS_DIR: LazyLock<Option<PathBuf>> = LazyLock::new(|| {
 const WORDS_URL: &str =
     "https://raw.githubusercontent.com/Pazl27/typy-cli/refs/heads/master/resources/";
 
-pub fn find(language: &str, lenght: i32) -> Result<Vec<String>> {
+/// Load the full word list for `language`, downloading the language file on
+/// first use if it is not already present locally.
+pub fn load_words(language: &str) -> Result<Vec<String>> {
     let Some(words_file) = WORDS_DIR
         .as_ref()
         .map(|p| p.join(format!("{language}.txt")))
@@ -42,16 +44,36 @@ pub fn find(language: &str, lenght: i32) -> Result<Vec<String>> {
         .with_context(|| format!("Failed to save words file to {words_file:#?}"))?;
     }
 
-    let words = read_file(words_file.to_str().unwrap())?;
-    let mut word = random_word(&words);
+    read_file(words_file.to_str().unwrap()).map_err(Into::into)
+}
 
-    let mut fitted_words = Vec::new();
-    while check_if_fits(&word, &mut fitted_words, lenght) {
-        fitted_words.push(word.clone());
-        word = random_word(&words);
-    }
+/// Pick `count` random words from `language`.
+pub fn random_words(language: &str, count: usize) -> Result<Vec<String>> {
+    let words = load_words(language)?;
+    Ok((0..count).map(|_| random_word(&words)).collect())
+}
 
-    Ok(fitted_words)
+/// List the available wordlists (the `*.txt` files) in the words directory,
+/// by language name (file stem), sorted.
+pub fn list_languages() -> Vec<String> {
+    let Some(dir) = WORDS_DIR.as_ref() else {
+        return Vec::new();
+    };
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return Vec::new();
+    };
+    let mut langs: Vec<String> = entries
+        .filter_map(|e| e.ok())
+        .filter_map(|e| {
+            let path = e.path();
+            (path.extension().and_then(|s| s.to_str()) == Some("txt"))
+                .then(|| path.file_stem().and_then(|s| s.to_str()).map(String::from))
+                .flatten()
+        })
+        .collect();
+    langs.sort();
+    langs.dedup();
+    langs
 }
 
 fn read_file(path: &str) -> Result<Vec<String>, std::io::Error> {
@@ -70,19 +92,6 @@ fn random_word(words: &[String]) -> String {
     word.to_string()
 }
 
-fn check_if_fits(word: &str, fitted_words: &mut [String], lenght: i32) -> bool {
-    let list_length: i32 = fitted_words
-        .iter()
-        .map(|s| s.chars().count() as i32)
-        .sum::<i32>()
-        + word.chars().count() as i32;
-
-    if list_length > lenght {
-        return false;
-    }
-    true
-}
-
 #[cfg(test)]
 mod finder_tests {
 
@@ -99,15 +108,5 @@ mod finder_tests {
         let words = vec!["Hello".to_string(), "World".to_string()];
         let word = random_word(&words);
         assert!(word == "Hello" || word == "World");
-    }
-
-    #[test]
-    fn test_check_if_fits() {
-        let word = "Hello".to_string();
-        let mut fitted_words = Vec::new();
-        let lenght = 5;
-        assert!(check_if_fits(&word, &mut fitted_words, lenght));
-        fitted_words.push("Hello".to_string());
-        assert!(!check_if_fits(&word, &mut fitted_words, lenght));
     }
 }

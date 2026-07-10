@@ -1,6 +1,4 @@
-use tui::style::Color;
-
-use crate::config::toml_parser::get_config;
+use ratatui::style::Color;
 
 pub struct Graph {
     pub data: Color,
@@ -9,27 +7,16 @@ pub struct Graph {
 }
 
 impl Graph {
-    pub fn new() -> Self {
-        let theme_colors: Graph = match get_config().lock().unwrap().get_graph() {
-            Some(colors) => {
-                let data = colors
-                    .data
-                    .and_then(|c| hex_to_rgb(&c))
-                    .unwrap_or(Color::Yellow);
-                let title = colors
-                    .title
-                    .and_then(|c| hex_to_rgb(&c))
-                    .unwrap_or(Color::Red);
-                let axis = colors
-                    .axis
-                    .and_then(|c| hex_to_rgb(&c))
-                    .unwrap_or(Color::White);
-
-                Graph { data, title, axis }
-            }
-            None => Graph::default(),
-        };
-        theme_colors
+    pub fn from_opts(
+        data: Option<String>,
+        title: Option<String>,
+        axis: Option<String>,
+    ) -> Self {
+        Graph {
+            data: data.and_then(|c| hex_to_rgb(&c)).unwrap_or(Color::Yellow),
+            title: title.and_then(|c| hex_to_rgb(&c)).unwrap_or(Color::Red),
+            axis: axis.and_then(|c| hex_to_rgb(&c)).unwrap_or(Color::White),
+        }
     }
 }
 

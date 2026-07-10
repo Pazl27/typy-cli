@@ -31,11 +31,17 @@ pub struct ModesTable {
     pub default_mode: Option<String>,
     pub uppercase_chance: Option<String>,
     pub punctuation_chance: Option<String>,
+    pub numbers_chance: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct LanguageTable {
     pub lang: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct KeybindsTable {
+    pub preset: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Default)]
@@ -45,6 +51,7 @@ pub struct ConfigToml {
     cursor: Option<CursorTable>,
     modes: Option<ModesTable>,
     language: Option<LanguageTable>,
+    keybinds: Option<KeybindsTable>,
 }
 
 impl ConfigToml {
@@ -88,6 +95,35 @@ impl ConfigToml {
 
     pub fn get_language(&self) -> Option<LanguageTable> {
         self.language.clone()
+    }
+
+    pub fn get_keybinds(&self) -> Option<KeybindsTable> {
+        self.keybinds.clone()
+    }
+
+    /// Build a config from fully-specified tables (used when writing settings
+    /// back to disk from the in-app menu).
+    #[allow(clippy::too_many_arguments)]
+    pub fn from_parts(
+        theme: ThemeTable,
+        graph: GraphTable,
+        cursor: CursorTable,
+        modes: ModesTable,
+        language: LanguageTable,
+        keybinds: KeybindsTable,
+    ) -> Self {
+        ConfigToml {
+            theme: Some(theme),
+            graph: Some(graph),
+            cursor: Some(cursor),
+            modes: Some(modes),
+            language: Some(language),
+            keybinds: Some(keybinds),
+        }
+    }
+
+    pub fn to_toml_string(&self) -> Result<String, toml::ser::Error> {
+        toml::to_string_pretty(self)
     }
 }
 

@@ -4,28 +4,44 @@ use serde::{Deserialize, Serialize};
 use serde_json::to_writer_pretty;
 use std::fs::{self, File};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize)]
 pub struct Averages {
     pub wpm_avg: WpmAvg,
     pub raw_avg: RawAvg,
     pub accuracy_avg: AccuracyAvg,
+    #[serde(default)]
+    pub consistency_avg: ConsistencyAvg,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+impl Averages {
+    /// Total number of tests ever played (all-time, not just the retained 10).
+    pub fn total_tests(&self) -> u32 {
+        self.wpm_avg.count
+    }
+}
+
+#[derive(Debug, Default, Serialize, Deserialize)]
+pub struct ConsistencyAvg {
+    pub avg: f32,
+    count: u32,
+    sum_all: f32,
+}
+
+#[derive(Debug, Default, Serialize, Deserialize)]
 pub struct WpmAvg {
     pub avg: f32,
     count: u32,
     sum_all: u32,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize)]
 pub struct RawAvg {
     pub avg: f32,
     count: u32,
     sum_all: u32,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize)]
 pub struct AccuracyAvg {
     pub avg: f32,
     count: u32,
@@ -38,6 +54,14 @@ pub struct Score {
     pub wpm: u32,
     pub raw: u32,
     pub accuracy: f32,
+    #[serde(default)]
+    pub consistency: f32,
+    /// Per-second WPM curve, so the test's graph can be reviewed later.
+    #[serde(default)]
+    pub series: Vec<i32>,
+    /// Mode label the test was played with (e.g. "uppercase punctuation").
+    #[serde(default)]
+    pub mode: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -103,6 +127,44 @@ impl Data {
         let data = Data::get_data()?;
         Ok(data.scores)
     }
+
+    /// Delete the score with the given timestamp and remove its contribution
+    /// from the rolling averages.
+    pub fn delete_score(timestamp: NaiveDateTime) -> Result<()> {
+        let mut data = Data::get_data()?;
+        let Some(pos) = data.scores.iter().position(|s| s.timestamp == timestamp) else {
+            return Ok(());
+        };
+        let s = data.scores.remove(pos);
+        let a = &mut data.averages;
+
+        a.wpm_avg.count = a.wpm_avg.count.saturating_sub(1);
+        a.wpm_avg.sum_all = a.wpm_avg.sum_all.saturating_sub(s.wpm);
+        a.wpm_avg.avg = safe_div(a.wpm_avg.sum_all as f32, a.wpm_avg.count);
+
+        a.raw_avg.count = a.raw_avg.count.saturating_sub(1);
+        a.raw_avg.sum_all = a.raw_avg.sum_all.saturating_sub(s.raw);
+        a.raw_avg.avg = safe_div(a.raw_avg.sum_all as f32, a.raw_avg.count);
+
+        a.accuracy_avg.count = a.accuracy_avg.count.saturating_sub(1);
+        a.accuracy_avg.sum_all = (a.accuracy_avg.sum_all - s.accuracy).max(0.0);
+        a.accuracy_avg.avg = safe_div(a.accuracy_avg.sum_all, a.accuracy_avg.count);
+
+        a.consistency_avg.count = a.consistency_avg.count.saturating_sub(1);
+        a.consistency_avg.sum_all = (a.consistency_avg.sum_all - s.consistency).max(0.0);
+        a.consistency_avg.avg = safe_div(a.consistency_avg.sum_all, a.consistency_avg.count);
+
+        Self::write_to_file(data)?;
+        Ok(())
+    }
+}
+
+fn safe_div(sum: f32, count: u32) -> f32 {
+    if count == 0 {
+        0.0
+    } else {
+        sum / count as f32
+    }
 }
 
 impl Default for Data {
@@ -125,21 +187,35 @@ impl Default for Data {
                     count: 0,
                     sum_all: 0.0,
                 },
+                consistency_avg: ConsistencyAvg::default(),
             },
         }
     }
 }
 
 impl Score {
-    pub fn new(wpm: u32, raw: u32, mut accuracy: f32) -> Score {
+    pub fn new(
+        wpm: u32,
+        raw: u32,
+        mut accuracy: f32,
+        mut consistency: f32,
+        series: Vec<i32>,
+        mode: String,
+    ) -> Score {
         if accuracy.is_nan() {
             accuracy = 0.0;
+        }
+        if consistency.is_nan() {
+            consistency = 0.0;
         }
         Score {
             timestamp: chrono::Local::now().naive_local(),
             wpm,
             raw,
             accuracy,
+            consistency,
+            series,
+            mode,
         }
     }
 
@@ -181,18 +257,22 @@ impl Averages {
         let mut wpm_sum = averages.wpm_avg.sum_all;
         let mut raw_sum = averages.raw_avg.sum_all;
         let mut accuracy_sum = averages.accuracy_avg.sum_all;
+        let mut consistency_sum = averages.consistency_avg.sum_all;
 
         let mut wpm_count = averages.wpm_avg.count;
         let mut raw_count = averages.raw_avg.count;
         let mut accuracy_count = averages.accuracy_avg.count;
+        let mut consistency_count = averages.consistency_avg.count;
 
         wpm_sum += score.wpm;
         raw_sum += score.raw;
         accuracy_sum += score.accuracy;
+        consistency_sum += score.consistency;
 
         wpm_count += 1;
         raw_count += 1;
         accuracy_count += 1;
+        consistency_count += 1;
 
         let wpm_avg = WpmAvg {
             avg: wpm_sum as f32 / wpm_count as f32,
@@ -212,10 +292,17 @@ impl Averages {
             sum_all: accuracy_sum,
         };
 
+        let consistency_avg = ConsistencyAvg {
+            avg: consistency_sum / consistency_count as f32,
+            count: consistency_count,
+            sum_all: consistency_sum,
+        };
+
         Ok(Averages {
             wpm_avg,
             raw_avg,
             accuracy_avg,
+            consistency_avg,
         })
     }
 }

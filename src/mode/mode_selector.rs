@@ -4,11 +4,13 @@ use std::str::FromStr;
 
 use crate::config::mode_settings::ModeSettings;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum ModeType {
     Normal,
     Uppercase,
     Punctuation,
+    Numbers,
+    Quotes,
 }
 
 impl FromStr for ModeType {
@@ -18,6 +20,8 @@ impl FromStr for ModeType {
         match input {
             "uppercase" => Ok(ModeType::Uppercase),
             "punctuation" => Ok(ModeType::Punctuation),
+            "numbers" => Ok(ModeType::Numbers),
+            "quotes" | "quote" => Ok(ModeType::Quotes),
             "normal" => Ok(ModeType::Normal),
             _ => Err(()),
         }
@@ -37,18 +41,16 @@ impl Mode {
         let settings = ModeSettings::new();
 
         for mode_str in mode_strs {
-            match mode_str {
-                "normal" => modes.push(ModeType::Normal),
-                "uppercase" => modes.push(ModeType::Uppercase),
-                "punctuation" => modes.push(ModeType::Punctuation),
-                _ => return Err(anyhow::anyhow!("Invalid mode: {}", mode_str)),
+            match ModeType::from_str(mode_str) {
+                Ok(m) => modes.push(m),
+                Err(_) => return Err(anyhow::anyhow!("Invalid mode: {}", mode_str)),
             }
         }
 
         // If no specific mode is provided, default to normal
         modes.is_empty().then(|| {
             settings.default_modes.iter().for_each(|m| {
-                modes.push(m.clone());
+                modes.push(*m);
             });
         });
 
@@ -64,9 +66,44 @@ impl Mode {
         })
     }
 
+    /// Build from explicit mode types and settings (used by the app screens,
+    /// which resolve settings from the live `Settings` instead of the global
+    /// config).
+    pub fn from_types(modes: Vec<ModeType>, settings: ModeSettings) -> Self {
+        let modes = if modes.contains(&ModeType::Normal) || modes.is_empty() {
+            vec![ModeType::Normal]
+        } else {
+            modes
+        };
+        Mode {
+            modes,
+            duration: 0,
+            settings,
+        }
+    }
+
     pub fn add_duration(mut self, duration: u64) -> Self {
         self.duration = duration;
         self
+    }
+
+    pub fn contains(&self, mode: ModeType) -> bool {
+        self.modes.contains(&mode)
+    }
+
+    /// Human-readable label for the header (e.g. "uppercase punctuation").
+    pub fn label(&self) -> String {
+        self.modes
+            .iter()
+            .map(|m| match m {
+                ModeType::Normal => "normal",
+                ModeType::Uppercase => "uppercase",
+                ModeType::Punctuation => "punctuation",
+                ModeType::Numbers => "numbers",
+                ModeType::Quotes => "quotes",
+            })
+            .collect::<Vec<_>>()
+            .join(" ")
     }
 
     pub fn transform(&self, list: &mut [Vec<String>]) {
@@ -104,6 +141,19 @@ impl Mode {
                         }
                     }
                 }
+                ModeType::Numbers => {
+                    for sublist in list.iter_mut() {
+                        for item in sublist.iter_mut() {
+                            if rng.random_bool(self.settings.numbers_chance.into()) {
+                                let n = rng.random_range(0..10000);
+                                *item = n.to_string();
+                            }
+                        }
+                    }
+                }
+                // Quotes provide their own fixed target text, generated outside
+                // of `transform`; nothing to do here.
+                ModeType::Quotes => {}
                 ModeType::Normal => {}
             }
         }

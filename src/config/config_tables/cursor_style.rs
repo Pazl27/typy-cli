@@ -1,25 +1,23 @@
 use crossterm::cursor::SetCursorStyle;
 
-use crate::config::toml_parser::get_config;
-use crate::config::toml_parser::CursorTable;
-
 pub struct CursorKind {
     pub style: SetCursorStyle,
 }
 
-impl CursorKind {
-    pub fn new() -> Self {
-        let cursor_table: CursorTable =
-            get_config()
-                .lock()
-                .unwrap()
-                .get_cursor()
-                .unwrap_or(CursorTable {
-                    style: Some("DefaultUserShape".to_owned()),
-                });
+/// The cursor styles that can be selected, in menu-cycle order.
+pub const CURSOR_STYLES: [&str; 7] = [
+    "DefaultUserShape",
+    "BlinkingBlock",
+    "SteadyBlock",
+    "BlinkingUnderScore",
+    "SteadyUnderScore",
+    "BlinkingBar",
+    "SteadyBar",
+];
 
-        let cursor_kind = match cursor_table.style.as_deref() {
-            Some("DefaultUserShape") => SetCursorStyle::DefaultUserShape,
+impl CursorKind {
+    pub fn from_name(name: Option<&str>) -> Self {
+        let style = match name {
             Some("BlinkingBlock") => SetCursorStyle::BlinkingBlock,
             Some("SteadyBlock") => SetCursorStyle::SteadyBlock,
             Some("BlinkingUnderScore") => SetCursorStyle::BlinkingUnderScore,
@@ -28,8 +26,7 @@ impl CursorKind {
             Some("SteadyBar") => SetCursorStyle::SteadyBar,
             _ => SetCursorStyle::DefaultUserShape,
         };
-
-        CursorKind { style: cursor_kind }
+        CursorKind { style }
     }
 }
 
