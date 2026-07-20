@@ -156,10 +156,5 @@ fn render_hint(frame: &mut Frame, area: Rect, theme: &Theme) {
 }
 
 fn live_wpm(session: &TypingSession) -> u32 {
-    let wpm = session.stats.wpm();
-    if wpm.is_finite() && wpm > 0.0 {
-        wpm as u32
-    } else {
-        0
-    }
+    session.live_wpm()
 }

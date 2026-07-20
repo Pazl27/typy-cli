@@ -82,14 +82,9 @@ impl TypingSession {
         let Some(word) = self.current() else {
             return;
         };
-        let pos = word.typed.len();
-        let correct = word.target.get(pos).is_some_and(|&t| t == c);
         word.typed.push(c);
 
         self.stats.letter_count += 1;
-        if !correct {
-            self.stats.incorrect_letters += 1;
-        }
 
         if idx == self.words.len() - 1 {
             let word = &self.words[idx];
@@ -150,6 +145,53 @@ impl TypingSession {
             return;
         }
         self.stats.add_letters();
+        let (correct, incorrect, extra, missed) = self.tally();
+        let elapsed = self
+            .start
+            .map(|s| s.elapsed().as_secs_f64())
+            .unwrap_or(0.0);
+        self.stats
+            .finalize(correct, incorrect, extra, missed, self.cursor_word as i32, elapsed);
         self.finished = true;
+    }
+
+    fn tally(&self) -> (i32, i32, i32, i32) {
+        let mut correct = 0;
+        let mut incorrect = 0;
+        let mut extra = 0;
+        let mut missed = 0;
+
+        let last = self.cursor_word.min(self.words.len().saturating_sub(1));
+        for (wi, word) in self.words.iter().enumerate().take(last + 1) {
+            let common = word.target.len().min(word.typed.len());
+            for i in 0..common {
+                if word.typed[i] == word.target[i] {
+                    correct += 1;
+                } else {
+                    incorrect += 1;
+                }
+            }
+            if word.typed.len() > word.target.len() {
+                extra += (word.typed.len() - word.target.len()) as i32;
+            }
+            if wi < self.cursor_word && word.typed.len() < word.target.len() {
+                missed += (word.target.len() - word.typed.len()) as i32;
+            }
+        }
+
+        (correct, incorrect, extra, missed)
+    }
+
+    pub fn live_wpm(&self) -> u32 {
+        let Some(start) = self.start else {
+            return 0;
+        };
+        let minutes = start.elapsed().as_secs_f64() / 60.0;
+        if minutes <= 0.0 {
+            return 0;
+        }
+        let (correct, _, _, _) = self.tally();
+        let chars = correct as f64 + self.cursor_word as f64;
+        ((chars / 5.0) / minutes).max(0.0) as u32
     }
 }
