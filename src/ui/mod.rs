@@ -1,6 +1,7 @@
 mod home;
 mod results;
 mod settings;
+mod stats;
 mod typing;
 
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
@@ -14,6 +15,7 @@ pub fn render(frame: &mut Frame, app: &App) {
         Screen::Typing => typing::render(frame, app),
         Screen::Results => results::render(frame, app),
         Screen::Settings => settings::render(frame, app),
+        Screen::Stats => stats::render(frame, app),
     }
 }
 

@@ -78,6 +78,8 @@ fn render_command_bar(frame: &mut Frame, area: Rect, theme: &Theme) {
     let line = Line::from(vec![
         key(" s "),
         label("settings   "),
+        key(" p "),
+        label("stats   "),
         key(" q "),
         label("quit"),
     ]);

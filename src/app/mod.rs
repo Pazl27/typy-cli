@@ -8,7 +8,7 @@ use crossterm::execute;
 
 use crate::config::save_settings;
 use crate::mode::Mode;
-use crate::scores::progress::{Data, Score};
+use crate::scores::progress::{Averages, Data, Score};
 use crate::settings::SettingsState;
 use crate::theme::{self, Theme};
 use crate::tui::{events, Tui};
@@ -21,6 +21,12 @@ pub enum Screen {
     Typing,
     Results,
     Settings,
+    Stats,
+}
+
+pub struct StatsData {
+    pub averages: Averages,
+    pub scores: Vec<Score>,
 }
 
 pub struct App {
@@ -34,6 +40,7 @@ pub struct App {
     pub time: u64,
     pub session: Option<TypingSession>,
     pub settings: Option<SettingsState>,
+    pub stats: Option<StatsData>,
 }
 
 impl App {
@@ -55,6 +62,7 @@ impl App {
             time,
             session: None,
             settings: None,
+            stats: None,
         }
     }
 
@@ -82,6 +90,14 @@ impl App {
             }
             Err(_) => self.screen = Screen::Home,
         }
+    }
+
+    fn open_stats(&mut self) {
+        let mut scores = Data::get_scores().unwrap_or_default();
+        Score::sort_scores(&mut scores);
+        let averages = Data::get_averages().unwrap_or_else(|_| Data::default().averages);
+        self.stats = Some(StatsData { averages, scores });
+        self.screen = Screen::Stats;
     }
 
     fn open_settings(&mut self) {
@@ -152,6 +168,7 @@ impl App {
                 Screen::Typing => self.handle_typing_key(key),
                 Screen::Results => self.handle_results_key(key),
                 Screen::Settings => self.handle_settings_key(key),
+                Screen::Stats => self.handle_stats_key(key),
             }
         }
     }
@@ -160,7 +177,15 @@ impl App {
         match key.code {
             KeyCode::Char('q') | KeyCode::Esc => self.should_quit = true,
             KeyCode::Char('s') => self.open_settings(),
+            KeyCode::Char('p') => self.open_stats(),
             _ => self.start_test(),
+        }
+    }
+
+    fn handle_stats_key(&mut self, key: KeyEvent) {
+        if matches!(key.code, KeyCode::Esc | KeyCode::Char('q') | KeyCode::Char('p')) {
+            self.stats = None;
+            self.screen = Screen::Home;
         }
     }
 
