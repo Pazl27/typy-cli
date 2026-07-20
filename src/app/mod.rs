@@ -42,6 +42,9 @@ pub struct App {
     pub settings: Option<SettingsState>,
     pub stats: Option<StatsData>,
     pub direct: bool,
+    pub record: u32,
+    pub previous_record: u32,
+    pub new_record: bool,
     results_opened: Option<Instant>,
 }
 
@@ -67,8 +70,15 @@ impl App {
             settings: None,
             stats: None,
             direct,
+            record: Data::get_record(time).unwrap_or(0),
+            previous_record: 0,
+            new_record: false,
             results_opened: None,
         }
+    }
+
+    fn refresh_record(&mut self) {
+        self.record = Data::get_record(self.time).unwrap_or(0);
     }
 
     fn tick(&mut self) {
@@ -138,6 +148,7 @@ impl App {
         self.language = language;
         self.mode_tokens = mode_tokens;
         self.time = time;
+        self.refresh_record();
         let _ = save_settings(
             &self.theme_name,
             &self.cursor_style,
@@ -149,12 +160,13 @@ impl App {
 
     fn finish_test(&mut self) {
         if let Some(session) = self.session.as_ref() {
-            let score = Score::new(
-                session.stats.wpm() as u32,
-                session.stats.raw_wpm() as u32,
-                session.stats.accuracy() as f32,
-            );
-            let _ = Data::save_data(score);
+            let wpm = session.stats.wpm() as u32;
+            self.previous_record = Data::get_record(self.time).unwrap_or(0);
+            self.new_record = wpm > self.previous_record;
+
+            let score = Score::new(wpm, session.stats.raw_wpm() as u32, session.stats.accuracy() as f32);
+            let _ = Data::save_data(score, self.time);
+            self.refresh_record();
         }
         self.screen = Screen::Results;
         self.results_opened = Some(Instant::now());

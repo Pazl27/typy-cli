@@ -10,7 +10,7 @@ use crate::scores::Stats;
 use crate::theme::Theme;
 
 const PANEL_WIDTH: u16 = 64;
-const PANEL_HEIGHT: u16 = 18;
+const PANEL_HEIGHT: u16 = 20;
 const GRAPH_HEIGHT: u16 = 10;
 
 pub fn render(frame: &mut Frame, app: &App) {
@@ -25,6 +25,8 @@ pub fn render(frame: &mut Frame, app: &App) {
     let rows = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
+            Constraint::Length(1),
+            Constraint::Length(1),
             Constraint::Length(4),
             Constraint::Length(1),
             Constraint::Length(GRAPH_HEIGHT),
@@ -33,9 +35,35 @@ pub fn render(frame: &mut Frame, app: &App) {
         ])
         .split(panel);
 
-    render_headline(frame, rows[0], stats, &theme);
-    render_graph(frame, rows[2], stats, &theme);
-    render_footer(frame, rows[4], theme, app.direct);
+    render_banner(frame, rows[0], app, theme);
+    render_headline(frame, rows[2], stats, theme);
+    render_graph(frame, rows[4], stats, theme);
+    render_footer(frame, rows[6], theme, app.direct);
+}
+
+fn render_banner(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
+    let line = if app.new_record {
+        Line::from(vec![
+            Span::styled(
+                "\u{2726} new best!  ",
+                Style::default()
+                    .fg(theme.accent)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::styled(
+                format!("{} \u{2192} {} wpm", app.previous_record, app.record),
+                Style::default().fg(theme.accent),
+            ),
+        ])
+    } else if app.record > 0 {
+        Line::from(Span::styled(
+            format!("best  {} wpm", app.record),
+            Style::default().fg(theme.missing),
+        ))
+    } else {
+        Line::from("")
+    };
+    frame.render_widget(Paragraph::new(line).alignment(Alignment::Center), area);
 }
 
 fn centered_rect(area: Rect, width: u16, height: u16) -> Rect {

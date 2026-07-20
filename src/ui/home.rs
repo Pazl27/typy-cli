@@ -47,6 +47,17 @@ fn render_hero(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
         format!("{}  ·  {}s", app.language, app.time),
         Style::default().fg(theme.missing),
     )));
+    if app.record > 0 {
+        lines.push(Line::from(vec![
+            Span::styled("best  ", Style::default().fg(theme.missing)),
+            Span::styled(
+                format!("{} wpm", app.record),
+                Style::default()
+                    .fg(theme.accent)
+                    .add_modifier(Modifier::BOLD),
+            ),
+        ]));
+    }
     lines.push(Line::from(""));
     lines.push(Line::from(vec![
         Span::styled("press ", Style::default().fg(theme.missing)),
