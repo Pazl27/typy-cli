@@ -51,7 +51,6 @@ fn main() -> Result<()> {
         return Ok(());
     }
 
-    // Effective settings: CLI flags win, otherwise fall back to the config file.
     let language = config::language::Language::new().lang;
 
     let config_time = config::toml_parser::get_config()
@@ -71,7 +70,6 @@ fn main() -> Result<()> {
             .collect()
     };
 
-    // Validate the mode tokens up front so a bad `--mode` still errors clearly.
     Mode::from_str(mode_tokens.iter().map(|s| s.as_str()).collect())
         .context("Failed to parse mode")?;
 

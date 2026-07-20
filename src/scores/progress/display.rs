@@ -11,8 +11,6 @@ use crossterm::style::ResetColor;
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode, size, Clear, ClearType};
 use crossterm::{cursor, ExecutableCommand};
 
-/// Returns `Some(())` when the pressed key should close the view (Esc, `q`, or
-/// Ctrl-C).
 fn should_close(code: &KeyCode, modifiers: &KeyModifiers) -> Option<()> {
     match code {
         KeyCode::Esc | KeyCode::Char('q') => Some(()),

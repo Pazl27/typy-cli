@@ -9,7 +9,6 @@ use ratatui::Frame;
 
 use crate::app::{App, Screen};
 
-/// Top-level render dispatch. Pure function of `App`.
 pub fn render(frame: &mut Frame, app: &App) {
     match app.screen {
         Screen::Home => home::render(frame, app),
@@ -19,8 +18,6 @@ pub fn render(frame: &mut Frame, app: &App) {
     }
 }
 
-/// Return a full-width rect vertically centered within `area` with `height`
-/// rows (clamped to the area).
 pub(crate) fn centered_vertical(area: Rect, height: u16) -> Rect {
     let height = height.min(area.height);
     let chunks = Layout::default()

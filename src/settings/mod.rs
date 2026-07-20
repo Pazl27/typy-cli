@@ -2,11 +2,8 @@ use std::collections::BTreeSet;
 
 use crate::word_provider::available_languages;
 
-/// The selectable durations, in seconds.
 const TIME_OPTIONS: &[u64] = &[15, 30, 60, 120];
 
-/// Mode presets shown in the settings dropdown, each mapped to the mode tokens
-/// the engine understands.
 fn mode_options() -> Vec<(&'static str, Vec<&'static str>)> {
     vec![
         ("normal", vec!["normal"]),
@@ -16,7 +13,6 @@ fn mode_options() -> Vec<(&'static str, Vec<&'static str>)> {
     ]
 }
 
-/// Which setting a row edits.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Field {
     Language,
@@ -31,8 +27,6 @@ pub struct Row {
     pub selected: usize,
 }
 
-/// The interactive state of the settings screen: a list of rows, each with a
-/// dropdown that can be opened and navigated with vim motions.
 pub struct SettingsState {
     pub rows: Vec<Row>,
     pub cursor: usize,
@@ -110,7 +104,6 @@ impl SettingsState {
         self.open = false;
     }
 
-    /// Commit the highlighted dropdown option to the active row.
     pub fn confirm(&mut self) {
         self.rows[self.cursor].selected = self.dropdown_cursor;
         self.open = false;
@@ -142,13 +135,11 @@ impl SettingsState {
             .unwrap_or_else(|| vec!["normal".to_string()])
     }
 
-    /// The value stored under `[modes] default_mode` in the config file.
     pub fn mode_default_string(&self) -> String {
         self.mode_tokens().join(", ")
     }
 }
 
-/// Order-insensitive comparison of a preset's tokens against the active tokens.
 fn tokens_match(preset: &[&str], active: &[String]) -> bool {
     let a: BTreeSet<String> = preset.iter().map(|s| s.to_string()).collect();
     let b: BTreeSet<String> = active.iter().cloned().collect();

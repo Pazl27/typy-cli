@@ -10,8 +10,6 @@ use crate::app::App;
 use crate::config::graph_colors::Graph;
 use crate::scores::Stats;
 
-/// Overall size of the results panel. Kept small and centered rather than
-/// filling the whole terminal.
 const PANEL_WIDTH: u16 = 64;
 const PANEL_HEIGHT: u16 = 18;
 const GRAPH_HEIGHT: u16 = 10;
@@ -28,11 +26,11 @@ pub fn render(frame: &mut Frame, app: &App) {
     let rows = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(4),            // headline numbers
-            Constraint::Length(1),            // spacer
-            Constraint::Length(GRAPH_HEIGHT), // graph
-            Constraint::Length(1),            // spacer
-            Constraint::Length(1),            // footer
+            Constraint::Length(4),
+            Constraint::Length(1),
+            Constraint::Length(GRAPH_HEIGHT),
+            Constraint::Length(1),
+            Constraint::Length(1),
         ])
         .split(panel);
 
@@ -41,7 +39,6 @@ pub fn render(frame: &mut Frame, app: &App) {
     render_footer(frame, rows[4], &theme);
 }
 
-/// A rect of the given size centered within `area` (clamped to it).
 fn centered_rect(area: Rect, width: u16, height: u16) -> Rect {
     let width = width.min(area.width);
     let height = height.min(area.height);
@@ -171,7 +168,6 @@ fn render_footer(frame: &mut Frame, area: Rect, theme: &UiTheme) {
     frame.render_widget(Paragraph::new(line).alignment(Alignment::Center), area);
 }
 
-/// Round a metric to an integer, treating NaN/inf (empty test) as 0.
 fn safe(value: f64) -> u32 {
     if value.is_finite() && value > 0.0 {
         value.round() as u32

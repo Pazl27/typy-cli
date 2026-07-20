@@ -7,7 +7,6 @@ use ratatui::Frame;
 use super::theme::UiTheme;
 use crate::app::App;
 
-/// A small block-letter banner for "typy".
 const BANNER: &[&str] = &[
     "  _                    ",
     " | |_ _   _ _ __  _   _ ",
@@ -21,7 +20,6 @@ pub fn render(frame: &mut Frame, app: &App) {
     let theme = UiTheme::from(&app.theme);
     let area = frame.area();
 
-    // Reserve a bottom row for the command bar; center the rest.
     let root = Layout::default()
         .direction(Direction::Vertical)
         .constraints([Constraint::Min(0), Constraint::Length(1)])

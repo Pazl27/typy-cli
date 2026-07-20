@@ -9,7 +9,6 @@ use crate::app::App;
 use crate::settings::SettingsState;
 
 const PANEL_WIDTH: u16 = 52;
-/// Column at which each row's current value is aligned.
 const VALUE_COL: usize = 16;
 
 pub fn render(frame: &mut Frame, app: &App) {
@@ -20,13 +19,11 @@ pub fn render(frame: &mut Frame, app: &App) {
 
     let panel = render_panel(frame, state, &theme);
 
-    // When a row is being edited, float a real popup menu over everything.
     if state.open {
         render_popup(frame, panel, state, &theme);
     }
 }
 
-/// Draw the settings list itself and return its rect (used to anchor the popup).
 fn render_panel(frame: &mut Frame, state: &SettingsState, theme: &UiTheme) -> Rect {
     let mut lines: Vec<Line> = Vec::new();
     for (i, row) in state.rows.iter().enumerate() {
@@ -53,9 +50,9 @@ fn render_panel(frame: &mut Frame, state: &SettingsState, theme: &UiTheme) -> Re
         ]));
     }
     lines.push(Line::from(""));
-    lines.push(hint_line(state, theme));
+    lines.push(hint_line(theme));
 
-    let height = lines.len() as u16 + 2; // + borders
+    let height = lines.len() as u16 + 2;
     let panel = centered_rect(frame.area(), PANEL_WIDTH, height);
 
     let block = Block::default()
@@ -76,7 +73,6 @@ fn render_popup(frame: &mut Frame, panel: Rect, state: &SettingsState, theme: &U
     let row = &state.rows[state.cursor];
 
     let width = popup_width(row.options.iter().map(|s| s.as_str()), row.label);
-    // Cap the visible height so long lists scroll instead of overflowing.
     let max_visible = frame.area().height.saturating_sub(4).min(10);
     let height = (row.options.len() as u16 + 2).min(max_visible.max(3));
 
@@ -110,16 +106,17 @@ fn render_popup(frame: &mut Frame, panel: Rect, state: &SettingsState, theme: &U
     let mut list_state = ListState::default();
     list_state.select(Some(state.dropdown_cursor));
 
-    // Clear whatever is underneath so the menu truly floats.
     frame.render_widget(Clear, area);
     frame.render_stateful_widget(list, area, &mut list_state);
 }
 
-fn hint_line(state: &SettingsState, theme: &UiTheme) -> Line<'static> {
-    Line::from(Span::styled("j/k move   enter select   esc close", Style::default().fg(theme.missing)))
+fn hint_line(theme: &UiTheme) -> Line<'static> {
+    Line::from(Span::styled(
+        "j/k move   enter select   esc close",
+        Style::default().fg(theme.missing),
+    ))
 }
 
-/// Width sized to the longest option (or title), plus borders and padding.
 fn popup_width<'a>(options: impl Iterator<Item = &'a str>, label: &str) -> u16 {
     let longest = options
         .map(|s| s.chars().count())
@@ -129,17 +126,13 @@ fn popup_width<'a>(options: impl Iterator<Item = &'a str>, label: &str) -> u16 {
     (longest as u16 + 4).clamp(12, 40)
 }
 
-/// Position the popup directly under the active row's value, clamped to stay on
-/// screen. It intentionally overlaps the rows below it, like a native menu.
 fn popup_rect(screen: Rect, panel: Rect, row: usize, width: u16, height: u16) -> Rect {
     let width = width.min(screen.width);
     let height = height.min(screen.height);
 
-    // Left edge aligned with the value column (panel border + label width).
     let anchor_x = panel.x + 1 + VALUE_COL as u16;
     let x = anchor_x.min((screen.x + screen.width).saturating_sub(width));
 
-    // The row sits at panel.y + 1 (border) + row; open on the line below it.
     let anchor_y = panel.y + 2 + row as u16;
     let y = anchor_y.min((screen.y + screen.height).saturating_sub(height));
 
@@ -151,7 +144,6 @@ fn popup_rect(screen: Rect, panel: Rect, row: usize, width: u16, height: u16) ->
     }
 }
 
-/// A rect of the given size centered within `area` (clamped to it).
 fn centered_rect(area: Rect, width: u16, height: u16) -> Rect {
     let width = width.min(area.width);
     let height = height.min(area.height);

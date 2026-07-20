@@ -28,7 +28,6 @@ pub fn find(language: &str, lenght: i32) -> Result<Vec<String>> {
         bail!("Unable to find home directory");
     };
 
-    // Download words file if not already present
     if !words_file.exists() {
         create_dir_all(words_file.parent().unwrap())?;
         let language_url = format!("{WORDS_URL}{language}.txt");

@@ -15,9 +15,6 @@ pub fn get_words(language: &str) -> Result<Vec<Vec<String>>> {
     Ok(words)
 }
 
-/// The languages available to pick from, derived from the `*.txt` word-list
-/// files present on disk (installed languages plus any bundled resources).
-/// Only the file stems (e.g. `english`) are returned, sorted and de-duplicated.
 pub fn available_languages() -> Vec<String> {
     let mut dirs: Vec<PathBuf> = Vec::new();
     if let Some(home) = dirs::home_dir() {
@@ -40,7 +37,6 @@ pub fn available_languages() -> Vec<String> {
         }
     }
 
-    // Always offer english, which ships with the app, even before first run.
     if languages.is_empty() {
         languages.insert("english".to_string());
     }

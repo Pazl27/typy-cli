@@ -6,11 +6,6 @@ use crate::mode::Mode;
 use crate::scores::Stats;
 use crate::word_provider;
 
-/// A single word plus whatever the user has actually typed for it.
-///
-/// `typed` may be shorter than `target` (word not finished), equal (fully
-/// typed), or longer (the user typed extra characters before pressing space —
-/// MonkeyType shows those as errors appended to the word).
 pub struct Word {
     pub target: Vec<char>,
     pub typed: Vec<char>,
@@ -25,18 +20,12 @@ impl Word {
     }
 }
 
-/// The live state of a typing test. The UI renders purely from this; input and
-/// the timer mutate it.
 pub struct TypingSession {
     pub words: Vec<Word>,
-    /// Index of the word the caret is currently on.
     pub cursor_word: usize,
     pub stats: Stats,
     pub duration: u64,
-    /// Set on the first typed character — the test clock doesn't start until
-    /// the user actually begins.
     start: Option<Instant>,
-    /// Number of whole seconds already sampled into `stats.lps`.
     sampled_secs: u64,
     finished: bool,
 }
@@ -68,7 +57,6 @@ impl TypingSession {
         self.finished
     }
 
-    /// Whole seconds remaining, or the full duration before the clock starts.
     pub fn remaining_secs(&self) -> u64 {
         match self.start {
             None => self.duration,
@@ -78,7 +66,6 @@ impl TypingSession {
         }
     }
 
-    /// The word the caret sits on, if the test is still running.
     fn current(&mut self) -> Option<&mut Word> {
         self.words.get_mut(self.cursor_word)
     }
@@ -104,7 +91,6 @@ impl TypingSession {
             self.stats.incorrect_letters += 1;
         }
 
-        // If the last word was fully typed correctly, the test is complete.
         if idx == self.words.len() - 1 {
             let word = &self.words[idx];
             if word.typed.len() >= word.target.len() {
@@ -113,8 +99,6 @@ impl TypingSession {
         }
     }
 
-    /// Space always jumps to the start of the next word, no matter how much of
-    /// the current word was typed.
     pub fn space(&mut self) {
         if self.finished {
             return;
@@ -142,8 +126,6 @@ impl TypingSession {
         }
     }
 
-    /// Advance the timer: end the test when time runs out and snapshot the
-    /// letters-per-second samples the results graph is built from.
     pub fn tick(&mut self) {
         let Some(start) = self.start else {
             return;
@@ -167,7 +149,6 @@ impl TypingSession {
         if self.finished {
             return;
         }
-        // Capture the letters typed in the final, partial second.
         self.stats.add_letters();
         self.finished = true;
     }

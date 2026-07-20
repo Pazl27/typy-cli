@@ -15,8 +15,6 @@ pub fn render(frame: &mut Frame, app: &App) {
     };
     let area = frame.area();
 
-    // The typing area is a centered column so long tests wrap into a tidy
-    // block rather than spanning the whole terminal width.
     let width = area.width.saturating_mul(6) / 10;
     let column = Layout::default()
         .direction(Direction::Horizontal)
@@ -31,11 +29,11 @@ pub fn render(frame: &mut Frame, app: &App) {
         .direction(Direction::Vertical)
         .constraints([
             Constraint::Min(0),
-            Constraint::Length(1), // language indicator
             Constraint::Length(1),
-            Constraint::Length(1), // status (time · wpm)
             Constraint::Length(1),
-            Constraint::Length(6), // words
+            Constraint::Length(1),
+            Constraint::Length(1),
+            Constraint::Length(6),
             Constraint::Min(0),
         ])
         .split(column);
@@ -46,8 +44,6 @@ pub fn render(frame: &mut Frame, app: &App) {
     render_hint(frame, area, &theme);
 }
 
-/// The currently active language, shown above the typing area (à la
-/// MonkeyType's running settings display).
 fn render_language(frame: &mut Frame, area: Rect, language: &str, theme: &UiTheme) {
     let line = Line::from(vec![
         Span::styled(
@@ -94,8 +90,6 @@ fn render_words(frame: &mut Frame, area: Rect, session: &TypingSession, theme: &
     );
 }
 
-/// Append the styled characters of a single word (plus its trailing space) to
-/// `spans`, placing the caret if this is the active word.
 fn push_word_spans(
     spans: &mut Vec<Span<'static>>,
     word: &Word,
@@ -112,7 +106,6 @@ fn push_word_spans(
                 let ok = word.typed[i] == word.target[i];
                 (word.target[i], Style::default().fg(if ok { theme.fg } else { theme.error }))
             } else {
-                // Extra character typed past the end of the word.
                 (
                     word.typed[i],
                     Style::default()
@@ -128,8 +121,6 @@ fn push_word_spans(
         spans.push(Span::styled(ch.to_string(), style));
     }
 
-    // The caret sits on the separator space when the user is at/after the end
-    // of the current word.
     let space_style = if is_current && caret_pos >= len {
         caret
     } else {
@@ -153,8 +144,6 @@ fn render_hint(frame: &mut Frame, area: Rect, theme: &UiTheme) {
     );
 }
 
-/// Words-per-minute so far, guarding against the divide-by-zero before the
-/// first full second has been sampled.
 fn live_wpm(session: &TypingSession) -> u32 {
     let wpm = session.stats.wpm();
     if wpm.is_finite() && wpm > 0.0 {

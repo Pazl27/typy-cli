@@ -30,8 +30,6 @@ fn config_path() -> Result<PathBuf> {
     Ok(home.join(".config/typy/config.toml"))
 }
 
-/// Persist the settings editable from the in-app settings screen, preserving
-/// every other section, comment and formatting already in the file.
 pub fn save_settings(language: &str, mode: &str, time: u64) -> Result<()> {
     create_config()?;
     let path = config_path()?;
@@ -49,7 +47,6 @@ pub fn save_settings(language: &str, mode: &str, time: u64) -> Result<()> {
     Ok(())
 }
 
-/// Set `doc[section][key] = val`, creating the section table if it's missing.
 fn set_kv(doc: &mut DocumentMut, section: &str, key: &str, val: Item) {
     let table = doc.as_table_mut();
     if !table.contains_key(section) {

@@ -13,9 +13,6 @@ use ratatui::Terminal;
 
 pub type Backend = CrosstermBackend<Stdout>;
 
-/// Owns the terminal and is responsible for entering/leaving the alternate
-/// screen and raw mode. All the low-level terminal wrangling lives here so the
-/// rest of the app never has to think about it.
 pub struct Tui {
     pub terminal: Terminal<Backend>,
 }
@@ -26,8 +23,6 @@ impl Tui {
         Ok(Self { terminal })
     }
 
-    /// Switch the terminal into TUI mode (raw + alternate screen) and install a
-    /// panic hook so a crash can never leave the user's terminal broken.
     pub fn enter(&mut self) -> Result<()> {
         enable_raw_mode()?;
         execute!(stdout(), EnterAlternateScreen, cursor::Hide)?;
@@ -36,7 +31,6 @@ impl Tui {
         Ok(())
     }
 
-    /// Restore the terminal to its original state.
     pub fn exit(&mut self) -> Result<()> {
         Self::restore()
     }

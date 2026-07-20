@@ -12,7 +12,6 @@ use crate::tui::{events, Tui};
 use crate::typing::TypingSession;
 use crate::ui;
 
-/// Which top-level view is currently on screen.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Screen {
     Home,
@@ -21,20 +20,14 @@ pub enum Screen {
     Settings,
 }
 
-/// Holds all state the UI renders from. The UI layer is a pure function of this
-/// struct: `ui::render(frame, &app)`.
 pub struct App {
     pub screen: Screen,
     pub should_quit: bool,
     pub theme: ThemeColors,
-    /// Editable settings driving each test.
     pub language: String,
     pub mode_tokens: Vec<String>,
     pub time: u64,
-    /// The active (or just-finished) typing test. Present on the Typing and
-    /// Results screens.
     pub session: Option<TypingSession>,
-    /// The settings screen's interactive state, present only while editing.
     pub settings: Option<SettingsState>,
 }
 
@@ -52,8 +45,6 @@ impl App {
         }
     }
 
-    /// Per-frame update independent of input, so the countdown keeps running and
-    /// the test can end even while the user is idle.
     fn tick(&mut self) {
         if self.screen != Screen::Typing {
             return;
@@ -76,7 +67,6 @@ impl App {
                 self.session = Some(session);
                 self.screen = Screen::Typing;
             }
-            // If words can't be loaded there's nothing to type; stay home.
             Err(_) => self.screen = Screen::Home,
         }
     }
@@ -90,8 +80,6 @@ impl App {
         self.screen = Screen::Settings;
     }
 
-    /// Read the current settings selections into the live app state and persist
-    /// them to the config file.
     fn apply_settings(&mut self) {
         let Some((language, mode_tokens, time, mode_default)) = self.settings.as_ref().map(|s| {
             (
@@ -122,14 +110,11 @@ impl App {
         self.screen = Screen::Results;
     }
 
-    /// Route an input event to the handler for the active screen.
     fn handle_event(&mut self, event: Event) {
         if let Event::Key(key) = event {
-            // Ignore key-release events (Windows sends both press and release).
             if key.kind != KeyEventKind::Press {
                 return;
             }
-            // Ctrl-C always quits, from any screen.
             if key.code == KeyCode::Char('c') && key.modifiers.contains(KeyModifiers::CONTROL) {
                 self.should_quit = true;
                 return;
@@ -184,7 +169,6 @@ impl App {
     }
 
     fn handle_settings_key(&mut self, key: KeyEvent) {
-        // Phase 1: mutate the settings state and decide what to do afterwards.
         let post = {
             let Some(st) = self.settings.as_mut() else {
                 self.screen = Screen::Home;
@@ -226,7 +210,6 @@ impl App {
             }
         };
 
-        // Phase 2: act now that the settings borrow has ended.
         match post {
             Post::Apply => self.apply_settings(),
             Post::Leave => {
@@ -238,15 +221,12 @@ impl App {
     }
 }
 
-/// What `handle_settings_key` should do after releasing its borrow of the
-/// settings state.
 enum Post {
     None,
     Apply,
     Leave,
 }
 
-/// Entry point: set up the terminal, run the render/event loop, tear down.
 pub fn run(
     theme: ThemeColors,
     language: String,

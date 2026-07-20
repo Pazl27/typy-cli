@@ -91,12 +91,10 @@ impl ConfigToml {
     }
 }
 
-// Declare the static instance of ConfigToml using lazy_static
 lazy_static! {
     static ref CONFIG: Mutex<ConfigToml> = Mutex::new(ConfigToml::new());
 }
 
-// Helper function to access the static CONFIG
 pub fn get_config() -> &'static Mutex<ConfigToml> {
     &CONFIG
 }
