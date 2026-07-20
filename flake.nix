@@ -63,6 +63,16 @@
           type = "app";
           program = "${self.packages.${system}.default}/bin/typy";
         };
+
+        devShells.default = pkgs.mkShell {
+          inherit buildInputs;
+          nativeBuildInputs = with pkgs; [
+            rust-bin.stable.latest.default
+            pkg-config
+          ];
+          # Let pkg-config find openssl for the `reqwest` build.
+          PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
+        };
       }
     );
 }

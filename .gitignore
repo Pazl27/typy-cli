@@ -57,3 +57,6 @@ target/
 
 [Oo][Uu][Tt]
 
+
+# direnv
+.direnv/
