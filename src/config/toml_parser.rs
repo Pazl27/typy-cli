@@ -33,12 +33,18 @@ pub struct LanguageTable {
     pub lang: Option<String>,
 }
 
+#[derive(Serialize, Deserialize, Clone)]
+pub struct GameTable {
+    pub time: Option<u64>,
+}
+
 #[derive(Serialize, Deserialize, Default)]
 pub struct ConfigToml {
     theme: Option<ThemeTable>,
     graph: Option<GraphTable>,
     modes: Option<ModesTable>,
     language: Option<LanguageTable>,
+    game: Option<GameTable>,
 }
 
 impl ConfigToml {
@@ -78,6 +84,10 @@ impl ConfigToml {
 
     pub fn get_language(&self) -> Option<LanguageTable> {
         self.language.clone()
+    }
+
+    pub fn get_game(&self) -> Option<GameTable> {
+        self.game.clone()
     }
 }
 

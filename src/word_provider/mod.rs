@@ -2,6 +2,8 @@ mod finder;
 
 use anyhow::Result;
 use finder::find;
+use std::collections::BTreeSet;
+use std::path::PathBuf;
 
 const LENGTH: i32 = 70;
 
@@ -11,6 +13,38 @@ pub fn get_words(language: &str) -> Result<Vec<Vec<String>>> {
         words.push(find(language, LENGTH)?);
     }
     Ok(words)
+}
+
+/// The languages available to pick from, derived from the `*.txt` word-list
+/// files present on disk (installed languages plus any bundled resources).
+/// Only the file stems (e.g. `english`) are returned, sorted and de-duplicated.
+pub fn available_languages() -> Vec<String> {
+    let mut dirs: Vec<PathBuf> = Vec::new();
+    if let Some(home) = dirs::home_dir() {
+        dirs.push(home.join(".local/share/typy"));
+    }
+    dirs.push(PathBuf::from("./resources"));
+
+    let mut languages = BTreeSet::new();
+    for dir in dirs {
+        let Ok(entries) = std::fs::read_dir(dir) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.extension().and_then(|e| e.to_str()) == Some("txt") {
+                if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
+                    languages.insert(stem.to_string());
+                }
+            }
+        }
+    }
+
+    // Always offer english, which ships with the app, even before first run.
+    if languages.is_empty() {
+        languages.insert("english".to_string());
+    }
+    languages.into_iter().collect()
 }
 
 #[cfg(test)]

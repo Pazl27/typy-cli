@@ -11,6 +11,17 @@ pub enum ModeType {
     Punctuation,
 }
 
+impl ModeType {
+    /// The lowercase token used both on the CLI and in the config file.
+    pub fn token(&self) -> &'static str {
+        match self {
+            ModeType::Normal => "normal",
+            ModeType::Uppercase => "uppercase",
+            ModeType::Punctuation => "punctuation",
+        }
+    }
+}
+
 impl FromStr for ModeType {
     type Err = ();
 

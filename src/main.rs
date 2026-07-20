@@ -2,6 +2,7 @@ mod app;
 mod config;
 mod mode;
 mod scores;
+mod settings;
 mod tui;
 mod typing;
 mod ui;
@@ -21,13 +22,8 @@ use scores::progress::display;
 )]
 #[command(long_about = None)]
 struct Cli {
-    #[arg(
-        short = 't',
-        long = "time",
-        default_value = "30",
-        help = "Duration of the game"
-    )]
-    time: u64,
+    #[arg(short = 't', long = "time", help = "Duration of the game")]
+    time: Option<u64>,
 
     #[arg(short = 's', long = "stats", help = "Display game stats")]
     stats: bool,
@@ -42,8 +38,6 @@ struct Cli {
 fn main() -> Result<()> {
     let cli = Cli::parse();
 
-    let duration: u64 = cli.time;
-
     let theme = config::theme::ThemeColors::new();
 
     if cli.config {
@@ -57,16 +51,31 @@ fn main() -> Result<()> {
         return Ok(());
     }
 
-    let mut mode_strs: Vec<&str> = cli.mode.iter().map(|s| s.as_str()).collect();
-    mode_strs.is_empty().then(|| mode_strs.clear());
-
-    let mode = Mode::from_str(mode_strs)
-        .context("Failed to parse mode")?
-        .add_duration(duration);
-
+    // Effective settings: CLI flags win, otherwise fall back to the config file.
     let language = config::language::Language::new().lang;
 
-    app::run(mode, theme, language)?;
+    let config_time = config::toml_parser::get_config()
+        .lock()
+        .ok()
+        .and_then(|c| c.get_game())
+        .and_then(|g| g.time);
+    let time = cli.time.or(config_time).unwrap_or(30);
+
+    let mode_tokens: Vec<String> = if !cli.mode.is_empty() {
+        cli.mode.clone()
+    } else {
+        config::mode_settings::ModeSettings::new()
+            .default_modes
+            .iter()
+            .map(|m| m.token().to_string())
+            .collect()
+    };
+
+    // Validate the mode tokens up front so a bad `--mode` still errors clearly.
+    Mode::from_str(mode_tokens.iter().map(|s| s.as_str()).collect())
+        .context("Failed to parse mode")?;
+
+    app::run(theme, language, mode_tokens, time)?;
 
     Ok(())
 }

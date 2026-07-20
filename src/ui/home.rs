@@ -46,7 +46,7 @@ fn render_hero(frame: &mut Frame, area: Rect, app: &App, theme: &UiTheme) {
 
     lines.push(Line::from(""));
     lines.push(Line::from(Span::styled(
-        format!("{}  ·  {}s", app.language, app.mode.duration),
+        format!("{}  ·  {}s", app.language, app.time),
         Style::default().fg(theme.missing),
     )));
     lines.push(Line::from(""));
