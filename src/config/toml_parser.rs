@@ -22,11 +22,6 @@ pub struct GraphTable {
 }
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct CursorTable {
-    pub style: Option<String>,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
 pub struct ModesTable {
     pub default_mode: Option<String>,
     pub uppercase_chance: Option<String>,
@@ -42,7 +37,6 @@ pub struct LanguageTable {
 pub struct ConfigToml {
     theme: Option<ThemeTable>,
     graph: Option<GraphTable>,
-    cursor: Option<CursorTable>,
     modes: Option<ModesTable>,
     language: Option<LanguageTable>,
 }
@@ -76,10 +70,6 @@ impl ConfigToml {
 
     pub fn get_graph(&self) -> Option<GraphTable> {
         self.graph.clone()
-    }
-
-    pub fn get_cursor(&self) -> Option<CursorTable> {
-        self.cursor.clone()
     }
 
     pub fn get_modes(&self) -> Option<ModesTable> {

@@ -1,17 +1,25 @@
 use std::io::{stdout, Write};
 use std::time::Duration;
 
-use crate::terminal;
-
 use super::*;
 use anyhow::{Context, Result};
 use comfy_table::presets::UTF8_FULL;
 use comfy_table::*;
 use crossterm::cursor::MoveTo;
-use crossterm::event::{poll, read, Event, KeyEvent};
+use crossterm::event::{poll, read, Event, KeyCode, KeyEvent, KeyModifiers};
 use crossterm::style::ResetColor;
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode, size, Clear, ClearType};
 use crossterm::{cursor, ExecutableCommand};
+
+/// Returns `Some(())` when the pressed key should close the view (Esc, `q`, or
+/// Ctrl-C).
+fn should_close(code: &KeyCode, modifiers: &KeyModifiers) -> Option<()> {
+    match code {
+        KeyCode::Esc | KeyCode::Char('q') => Some(()),
+        KeyCode::Char('c') if modifiers.contains(KeyModifiers::CONTROL) => Some(()),
+        _ => None,
+    }
+}
 
 const TABLE_WIDTH: u16 = 48;
 
@@ -29,7 +37,7 @@ pub fn draw() -> Result<()> {
                 code, modifiers, ..
             })) = read().context("Failed to read event")
             {
-                if let Some(()) = terminal::close_typy(&code, &modifiers) {
+                if let Some(()) = should_close(&code, &modifiers) {
                     break;
                 }
             }

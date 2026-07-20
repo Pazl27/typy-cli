@@ -1,7 +1,10 @@
+mod app;
 mod config;
 mod mode;
 mod scores;
-mod terminal;
+mod tui;
+mod typing;
+mod ui;
 mod word_provider;
 
 use anyhow::{Context, Result};
@@ -61,7 +64,9 @@ fn main() -> Result<()> {
         .context("Failed to parse mode")?
         .add_duration(duration);
 
-    terminal::run(mode, theme)?;
+    let language = config::language::Language::new().lang;
+
+    app::run(mode, theme, language)?;
 
     Ok(())
 }
