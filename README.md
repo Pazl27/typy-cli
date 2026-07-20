@@ -50,7 +50,7 @@ If you prefer to get the newest version and compile it yourself, follow these st
 
 3. Move the compiled binary to a directory in your PATH:
     ```bash
-    sudo mv target/release/typy /usr/local/bin/
+    sudo mv target/release/typy.d /usr/local/bin/
     ```
 
 4. Ensure the `english.txt` file is in the correct location:
