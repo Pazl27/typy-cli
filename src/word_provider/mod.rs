@@ -20,7 +20,7 @@ pub fn available_languages() -> Vec<String> {
     if let Some(home) = dirs::home_dir() {
         dirs.push(home.join(".local/share/typy"));
     }
-    dirs.push(PathBuf::from("./resources"));
+    dirs.push(PathBuf::from("./resources/lang"));
 
     let mut languages = BTreeSet::new();
     for dir in dirs {

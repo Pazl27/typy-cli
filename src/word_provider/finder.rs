@@ -12,13 +12,13 @@ use rand::seq::IndexedRandom;
 
 static WORDS_DIR: LazyLock<Option<PathBuf>> = LazyLock::new(|| {
     if cfg!(test) {
-        Some(PathBuf::from("./resources/"))
+        Some(PathBuf::from("./resources/lang/"))
     } else {
         home_dir().map(|p| p.join(".local/share/typy"))
     }
 });
 const WORDS_URL: &str =
-    "https://raw.githubusercontent.com/Pazl27/typy-cli/refs/heads/master/resources/";
+    "https://raw.githubusercontent.com/Pazl27/typy-cli/refs/heads/master/resources/lang/";
 
 pub fn find(language: &str, lenght: i32) -> Result<Vec<String>> {
     let Some(words_file) = WORDS_DIR
@@ -89,7 +89,7 @@ mod finder_tests {
 
     #[test]
     fn test_read_file() {
-        let words = read_file("./resources/english.txt").unwrap();
+        let words = read_file("./resources/lang/english.txt").unwrap();
         assert_eq!(words.len(), 7776);
     }
 
