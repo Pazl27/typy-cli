@@ -1,0 +1,8 @@
+name = "Tokyo Night"
+fg = "#c0caf5"
+missing = "#565f89"
+error = "#f7768e"
+accent = "#7aa2f7"
+graph_data = "#9ece6a"
+graph_title = "#bb9af7"
+graph_axis = "#3b4261"

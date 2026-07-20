@@ -1,0 +1,8 @@
+name = "One Dark"
+fg = "#abb2bf"
+missing = "#5c6370"
+error = "#e06c75"
+accent = "#61afef"
+graph_data = "#98c379"
+graph_title = "#c678dd"
+graph_axis = "#4b5263"

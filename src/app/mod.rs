@@ -1,13 +1,16 @@
+use std::io::stdout;
 use std::time::Duration;
 
 use anyhow::Result;
+use crossterm::cursor::SetCursorStyle;
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
+use crossterm::execute;
 
 use crate::config::save_settings;
-use crate::config::theme::ThemeColors;
 use crate::mode::Mode;
 use crate::scores::progress::{Data, Score};
 use crate::settings::SettingsState;
+use crate::theme::{self, Theme};
 use crate::tui::{events, Tui};
 use crate::typing::TypingSession;
 use crate::ui;
@@ -23,7 +26,9 @@ pub enum Screen {
 pub struct App {
     pub screen: Screen,
     pub should_quit: bool,
-    pub theme: ThemeColors,
+    pub theme: Theme,
+    pub theme_name: String,
+    pub cursor_style: String,
     pub language: String,
     pub mode_tokens: Vec<String>,
     pub time: u64,
@@ -32,11 +37,19 @@ pub struct App {
 }
 
 impl App {
-    pub fn new(theme: ThemeColors, language: String, mode_tokens: Vec<String>, time: u64) -> Self {
+    pub fn new(
+        theme: Theme,
+        cursor_style: String,
+        language: String,
+        mode_tokens: Vec<String>,
+        time: u64,
+    ) -> Self {
         App {
             screen: Screen::Home,
             should_quit: false,
+            theme_name: theme.name.clone(),
             theme,
+            cursor_style,
             language,
             mode_tokens,
             time,
@@ -73,6 +86,8 @@ impl App {
 
     fn open_settings(&mut self) {
         self.settings = Some(SettingsState::new(
+            &self.theme_name,
+            &self.cursor_style,
             &self.language,
             &self.mode_tokens,
             self.time,
@@ -81,21 +96,34 @@ impl App {
     }
 
     fn apply_settings(&mut self) {
-        let Some((language, mode_tokens, time, mode_default)) = self.settings.as_ref().map(|s| {
-            (
-                s.language(),
-                s.mode_tokens(),
-                s.time(),
-                s.mode_default_string(),
-            )
-        }) else {
+        let Some((theme_name, cursor_style, language, mode_tokens, time, mode_default)) =
+            self.settings.as_ref().map(|s| {
+                (
+                    s.theme_name(),
+                    s.cursor_style(),
+                    s.language(),
+                    s.mode_tokens(),
+                    s.time(),
+                    s.mode_default_string(),
+                )
+            })
+        else {
             return;
         };
 
+        self.theme_name = theme_name;
+        self.theme = theme::load(&self.theme_name);
+        self.cursor_style = cursor_style;
         self.language = language;
         self.mode_tokens = mode_tokens;
         self.time = time;
-        let _ = save_settings(&self.language, &mode_default, self.time);
+        let _ = save_settings(
+            &self.theme_name,
+            &self.cursor_style,
+            &self.language,
+            &mode_default,
+            self.time,
+        );
     }
 
     fn finish_test(&mut self) {
@@ -227,8 +255,30 @@ enum Post {
     Leave,
 }
 
+fn cursor_shape(name: &str) -> SetCursorStyle {
+    let blink = name.contains("blink");
+    if name.contains("underline") {
+        if blink {
+            SetCursorStyle::BlinkingUnderScore
+        } else {
+            SetCursorStyle::SteadyUnderScore
+        }
+    } else if name.contains("bar") {
+        if blink {
+            SetCursorStyle::BlinkingBar
+        } else {
+            SetCursorStyle::SteadyBar
+        }
+    } else if blink {
+        SetCursorStyle::BlinkingBlock
+    } else {
+        SetCursorStyle::SteadyBlock
+    }
+}
+
 pub fn run(
-    theme: ThemeColors,
+    theme: Theme,
+    cursor_style: String,
     language: String,
     mode_tokens: Vec<String>,
     time: u64,
@@ -236,11 +286,14 @@ pub fn run(
     let mut tui = Tui::new()?;
     tui.enter()?;
 
-    let mut app = App::new(theme, language, mode_tokens, time);
+    let mut app = App::new(theme, cursor_style, language, mode_tokens, time);
 
     let result = (|| -> Result<()> {
         while !app.should_quit {
             app.tick();
+            if app.screen == Screen::Typing {
+                let _ = execute!(stdout(), cursor_shape(&app.cursor_style));
+            }
             tui.terminal.draw(|frame| ui::render(frame, &app))?;
             if let Some(event) = events::next(Duration::from_millis(100))? {
                 app.handle_event(event);

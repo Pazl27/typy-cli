@@ -30,7 +30,13 @@ fn config_path() -> Result<PathBuf> {
     Ok(home.join(".config/typy/config.toml"))
 }
 
-pub fn save_settings(language: &str, mode: &str, time: u64) -> Result<()> {
+pub fn save_settings(
+    theme: &str,
+    cursor: &str,
+    language: &str,
+    mode: &str,
+    time: u64,
+) -> Result<()> {
     create_config()?;
     let path = config_path()?;
 
@@ -39,6 +45,8 @@ pub fn save_settings(language: &str, mode: &str, time: u64) -> Result<()> {
         .parse::<DocumentMut>()
         .context("Failed to parse config file")?;
 
+    doc.as_table_mut().insert("theme", value(theme));
+    doc.as_table_mut().insert("cursor", value(cursor));
     set_kv(&mut doc, "language", "lang", value(language));
     set_kv(&mut doc, "modes", "default_mode", value(mode));
     set_kv(&mut doc, "game", "time", value(time as i64));

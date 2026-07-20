@@ -7,21 +7,6 @@ use std::sync::Mutex;
 use toml;
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct ThemeTable {
-    pub fg: Option<String>,
-    pub missing: Option<String>,
-    pub error: Option<String>,
-    pub accent: Option<String>,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct GraphTable {
-    pub data: Option<String>,
-    pub title: Option<String>,
-    pub axis: Option<String>,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
 pub struct ModesTable {
     pub default_mode: Option<String>,
     pub uppercase_chance: Option<String>,
@@ -40,8 +25,8 @@ pub struct GameTable {
 
 #[derive(Serialize, Deserialize, Default)]
 pub struct ConfigToml {
-    theme: Option<ThemeTable>,
-    graph: Option<GraphTable>,
+    theme: Option<String>,
+    cursor: Option<String>,
     modes: Option<ModesTable>,
     language: Option<LanguageTable>,
     game: Option<GameTable>,
@@ -70,12 +55,12 @@ impl ConfigToml {
         config_toml
     }
 
-    pub fn get_theme(&self) -> Option<ThemeTable> {
+    pub fn get_theme(&self) -> Option<String> {
         self.theme.clone()
     }
 
-    pub fn get_graph(&self) -> Option<GraphTable> {
-        self.graph.clone()
+    pub fn get_cursor(&self) -> Option<String> {
+        self.cursor.clone()
     }
 
     pub fn get_modes(&self) -> Option<ModesTable> {

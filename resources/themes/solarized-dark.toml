@@ -1,0 +1,8 @@
+name = "Solarized Dark"
+fg = "#839496"
+missing = "#586e75"
+error = "#dc322f"
+accent = "#268bd2"
+graph_data = "#859900"
+graph_title = "#d33682"
+graph_axis = "#073642"

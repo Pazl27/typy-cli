@@ -58,5 +58,6 @@ target/
 [Oo][Uu][Tt]
 
 
-# direnv
+# direnv and nix
 .direnv/
+result

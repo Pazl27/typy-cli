@@ -1,0 +1,8 @@
+name = "Dracula"
+fg = "#f8f8f2"
+missing = "#6272a4"
+error = "#ff5555"
+accent = "#bd93f9"
+graph_data = "#50fa7b"
+graph_title = "#ff79c6"
+graph_axis = "#44475a"

@@ -1,7 +1,6 @@
 mod home;
 mod results;
 mod settings;
-pub mod theme;
 mod typing;
 
 use ratatui::layout::{Constraint, Direction, Layout, Rect};

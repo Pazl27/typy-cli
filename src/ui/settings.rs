@@ -4,27 +4,27 @@ use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, Clear, List, ListItem, ListState, Paragraph};
 use ratatui::Frame;
 
-use super::theme::UiTheme;
 use crate::app::App;
 use crate::settings::SettingsState;
+use crate::theme::Theme;
 
 const PANEL_WIDTH: u16 = 52;
 const VALUE_COL: usize = 16;
 
 pub fn render(frame: &mut Frame, app: &App) {
-    let theme = UiTheme::from(&app.theme);
+    let theme = &app.theme;
     let Some(state) = app.settings.as_ref() else {
         return;
     };
 
-    let panel = render_panel(frame, state, &theme);
+    let panel = render_panel(frame, state, theme);
 
     if state.open {
-        render_popup(frame, panel, state, &theme);
+        render_popup(frame, panel, state, theme);
     }
 }
 
-fn render_panel(frame: &mut Frame, state: &SettingsState, theme: &UiTheme) -> Rect {
+fn render_panel(frame: &mut Frame, state: &SettingsState, theme: &Theme) -> Rect {
     let mut lines: Vec<Line> = Vec::new();
     for (i, row) in state.rows.iter().enumerate() {
         let active = i == state.cursor;
@@ -69,7 +69,7 @@ fn render_panel(frame: &mut Frame, state: &SettingsState, theme: &UiTheme) -> Re
     panel
 }
 
-fn render_popup(frame: &mut Frame, panel: Rect, state: &SettingsState, theme: &UiTheme) {
+fn render_popup(frame: &mut Frame, panel: Rect, state: &SettingsState, theme: &Theme) {
     let row = &state.rows[state.cursor];
 
     let width = popup_width(row.options.iter().map(|s| s.as_str()), row.label);
@@ -110,7 +110,7 @@ fn render_popup(frame: &mut Frame, panel: Rect, state: &SettingsState, theme: &U
     frame.render_stateful_widget(list, area, &mut list_state);
 }
 
-fn hint_line(theme: &UiTheme) -> Line<'static> {
+fn hint_line(theme: &Theme) -> Line<'static> {
     Line::from(Span::styled(
         "j/k move   enter select   esc close",
         Style::default().fg(theme.missing),

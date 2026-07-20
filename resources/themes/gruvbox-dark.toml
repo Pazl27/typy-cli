@@ -1,0 +1,8 @@
+name = "Gruvbox Dark"
+fg = "#ebdbb2"
+missing = "#928374"
+error = "#fb4934"
+accent = "#fabd2f"
+graph_data = "#b8bb26"
+graph_title = "#fe8019"
+graph_axis = "#504945"

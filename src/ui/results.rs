@@ -5,17 +5,16 @@ use ratatui::text::{Line, Span};
 use ratatui::widgets::{Axis, Block, Chart, Dataset, GraphType, Paragraph};
 use ratatui::Frame;
 
-use super::theme::UiTheme;
 use crate::app::App;
-use crate::config::graph_colors::Graph;
 use crate::scores::Stats;
+use crate::theme::Theme;
 
 const PANEL_WIDTH: u16 = 64;
 const PANEL_HEIGHT: u16 = 18;
 const GRAPH_HEIGHT: u16 = 10;
 
 pub fn render(frame: &mut Frame, app: &App) {
-    let theme = UiTheme::from(&app.theme);
+    let theme = &app.theme;
     let Some(session) = app.session.as_ref() else {
         return;
     };
@@ -50,7 +49,7 @@ fn centered_rect(area: Rect, width: u16, height: u16) -> Rect {
     }
 }
 
-fn render_headline(frame: &mut Frame, area: Rect, stats: &Stats, theme: &UiTheme) {
+fn render_headline(frame: &mut Frame, area: Rect, stats: &Stats, theme: &Theme) {
     let cols = Layout::default()
         .direction(Direction::Horizontal)
         .constraints([
@@ -71,7 +70,7 @@ fn render_headline(frame: &mut Frame, area: Rect, stats: &Stats, theme: &UiTheme
     metric(frame, cols[2], "raw", &safe(stats.raw_wpm()).to_string(), theme);
 }
 
-fn metric(frame: &mut Frame, area: Rect, label: &str, value: &str, theme: &UiTheme) {
+fn metric(frame: &mut Frame, area: Rect, label: &str, value: &str, theme: &Theme) {
     let text = vec![
         Line::from(Span::styled(
             label.to_string(),
@@ -87,8 +86,7 @@ fn metric(frame: &mut Frame, area: Rect, label: &str, value: &str, theme: &UiThe
     frame.render_widget(Paragraph::new(text).alignment(Alignment::Center), area);
 }
 
-fn render_graph(frame: &mut Frame, area: Rect, stats: &Stats, theme: &UiTheme) {
-    let colors = Graph::new();
+fn render_graph(frame: &mut Frame, area: Rect, stats: &Stats, theme: &Theme) {
     let data: Vec<(f64, f64)> = stats
         .lps
         .iter()
@@ -114,7 +112,7 @@ fn render_graph(frame: &mut Frame, area: Rect, stats: &Stats, theme: &UiTheme) {
     let datasets = vec![Dataset::default()
         .marker(symbols::Marker::Braille)
         .graph_type(GraphType::Line)
-        .style(Style::default().fg(colors.data.into()))
+        .style(Style::default().fg(theme.graph_data))
         .data(&data)];
 
     let chart = Chart::new(datasets)
@@ -123,9 +121,9 @@ fn render_graph(frame: &mut Frame, area: Rect, stats: &Stats, theme: &UiTheme) {
             Axis::default()
                 .title(Span::styled(
                     "seconds",
-                    Style::default().fg(colors.title.into()),
+                    Style::default().fg(theme.graph_title),
                 ))
-                .style(Style::default().fg(colors.axis.into()))
+                .style(Style::default().fg(theme.graph_axis))
                 .bounds([0.0, x_max])
                 .labels(vec![
                     Span::raw("0"),
@@ -136,9 +134,9 @@ fn render_graph(frame: &mut Frame, area: Rect, stats: &Stats, theme: &UiTheme) {
             Axis::default()
                 .title(Span::styled(
                     "letters",
-                    Style::default().fg(colors.title.into()),
+                    Style::default().fg(theme.graph_title),
                 ))
-                .style(Style::default().fg(colors.axis.into()))
+                .style(Style::default().fg(theme.graph_axis))
                 .bounds([0.0, y_max])
                 .labels(vec![
                     Span::raw("0"),
@@ -149,7 +147,7 @@ fn render_graph(frame: &mut Frame, area: Rect, stats: &Stats, theme: &UiTheme) {
     frame.render_widget(chart, area);
 }
 
-fn render_footer(frame: &mut Frame, area: Rect, theme: &UiTheme) {
+fn render_footer(frame: &mut Frame, area: Rect, theme: &Theme) {
     let key = |k: &'static str| {
         Span::styled(
             k,

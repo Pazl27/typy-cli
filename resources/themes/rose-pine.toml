@@ -1,0 +1,8 @@
+name = "Rosé Pine"
+fg = "#e0def4"
+missing = "#6e6a86"
+error = "#eb6f92"
+accent = "#ebbcba"
+graph_data = "#9ccfd8"
+graph_title = "#c4a7e7"
+graph_axis = "#26233a"

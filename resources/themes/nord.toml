@@ -1,0 +1,8 @@
+name = "Nord"
+fg = "#d8dee9"
+missing = "#4c566a"
+error = "#bf616a"
+accent = "#88c0d0"
+graph_data = "#a3be8c"
+graph_title = "#b48ead"
+graph_axis = "#434c5e"

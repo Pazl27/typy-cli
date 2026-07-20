@@ -4,8 +4,8 @@ use ratatui::text::{Line, Span};
 use ratatui::widgets::Paragraph;
 use ratatui::Frame;
 
-use super::theme::UiTheme;
 use crate::app::App;
+use crate::theme::Theme;
 
 const BANNER: &[&str] = &[
     "  _                    ",
@@ -17,7 +17,7 @@ const BANNER: &[&str] = &[
 ];
 
 pub fn render(frame: &mut Frame, app: &App) {
-    let theme = UiTheme::from(&app.theme);
+    let theme = &app.theme;
     let area = frame.area();
 
     let root = Layout::default()
@@ -25,11 +25,11 @@ pub fn render(frame: &mut Frame, app: &App) {
         .constraints([Constraint::Min(0), Constraint::Length(1)])
         .split(area);
 
-    render_hero(frame, root[0], app, &theme);
-    render_command_bar(frame, root[1], &theme);
+    render_hero(frame, root[0], app, theme);
+    render_command_bar(frame, root[1], theme);
 }
 
-fn render_hero(frame: &mut Frame, area: Rect, app: &App, theme: &UiTheme) {
+fn render_hero(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
     let mut lines: Vec<Line> = BANNER
         .iter()
         .map(|row| {
@@ -64,7 +64,7 @@ fn render_hero(frame: &mut Frame, area: Rect, app: &App, theme: &UiTheme) {
     );
 }
 
-fn render_command_bar(frame: &mut Frame, area: Rect, theme: &UiTheme) {
+fn render_command_bar(frame: &mut Frame, area: Rect, theme: &Theme) {
     let key = |k: &'static str| {
         Span::styled(
             k,

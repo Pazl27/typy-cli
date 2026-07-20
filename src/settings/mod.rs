@@ -1,8 +1,18 @@
 use std::collections::BTreeSet;
 
+use crate::theme::available_themes;
 use crate::word_provider::available_languages;
 
 const TIME_OPTIONS: &[u64] = &[15, 30, 60, 120];
+
+const CURSOR_OPTIONS: &[&str] = &[
+    "block",
+    "blinking block",
+    "underline",
+    "blinking underline",
+    "bar",
+    "blinking bar",
+];
 
 fn mode_options() -> Vec<(&'static str, Vec<&'static str>)> {
     vec![
@@ -15,6 +25,8 @@ fn mode_options() -> Vec<(&'static str, Vec<&'static str>)> {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Field {
+    Theme,
+    Cursor,
     Language,
     Mode,
     Time,
@@ -35,7 +47,19 @@ pub struct SettingsState {
 }
 
 impl SettingsState {
-    pub fn new(language: &str, mode_tokens: &[String], time: u64) -> Self {
+    pub fn new(
+        theme: &str,
+        cursor: &str,
+        language: &str,
+        mode_tokens: &[String],
+        time: u64,
+    ) -> Self {
+        let themes = available_themes();
+        let theme_sel = themes.iter().position(|t| t == theme).unwrap_or(0);
+
+        let cursor_options: Vec<String> = CURSOR_OPTIONS.iter().map(|c| c.to_string()).collect();
+        let cursor_sel = cursor_options.iter().position(|c| c == cursor).unwrap_or(0);
+
         let languages = available_languages();
         let language_sel = languages.iter().position(|l| l == language).unwrap_or(0);
 
@@ -50,6 +74,18 @@ impl SettingsState {
         let time_sel = TIME_OPTIONS.iter().position(|&t| t == time).unwrap_or(1);
 
         let rows = vec![
+            Row {
+                label: "theme",
+                field: Field::Theme,
+                options: themes,
+                selected: theme_sel,
+            },
+            Row {
+                label: "cursor",
+                field: Field::Cursor,
+                options: cursor_options,
+                selected: cursor_sel,
+            },
             Row {
                 label: "language",
                 field: Field::Language,
@@ -116,6 +152,14 @@ impl SettingsState {
             .find(|r| r.field == field)
             .expect("settings row missing");
         &row.options[row.selected]
+    }
+
+    pub fn theme_name(&self) -> String {
+        self.option_of(Field::Theme).to_string()
+    }
+
+    pub fn cursor_style(&self) -> String {
+        self.option_of(Field::Cursor).to_string()
     }
 
     pub fn language(&self) -> String {

@@ -37,7 +37,12 @@ impl Tui {
 
     fn restore() -> Result<()> {
         disable_raw_mode()?;
-        execute!(stdout(), LeaveAlternateScreen, cursor::Show)?;
+        execute!(
+            stdout(),
+            LeaveAlternateScreen,
+            cursor::SetCursorStyle::DefaultUserShape,
+            cursor::Show
+        )?;
         Ok(())
     }
 
