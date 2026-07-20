@@ -7,10 +7,13 @@ use std::path::PathBuf;
 
 const LENGTH: i32 = 70;
 
-pub fn get_words(language: &str) -> Result<Vec<Vec<String>>> {
+pub fn get_words(language: &str, min_words: usize) -> Result<Vec<Vec<String>>> {
     let mut words = Vec::new();
-    for _ in 0..3 {
-        words.push(find(language, LENGTH)?);
+    let mut count = 0;
+    while count < min_words {
+        let line = find(language, LENGTH)?;
+        count += line.len();
+        words.push(line);
     }
     Ok(words)
 }
@@ -49,13 +52,13 @@ mod word_provider_tests {
 
     #[test]
     fn test_get_words() {
-        let words = get_words("english");
+        let words = get_words("english", 150).unwrap();
 
-        for word in &words.unwrap() {
-            let mut length = 0;
-            for w in word {
-                length += w.chars().count() as i32;
-            }
+        let total: usize = words.iter().map(|line| line.len()).sum();
+        assert!(total >= 150);
+
+        for line in &words {
+            let length: i32 = line.iter().map(|w| w.chars().count() as i32).sum();
             assert!(length <= LENGTH);
         }
     }

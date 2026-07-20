@@ -33,7 +33,7 @@ pub fn render(frame: &mut Frame, app: &App) {
             Constraint::Length(1),
             Constraint::Length(1),
             Constraint::Length(1),
-            Constraint::Length(6),
+            Constraint::Length(3),
             Constraint::Min(0),
         ])
         .split(column);
@@ -79,7 +79,7 @@ fn render_words(frame: &mut Frame, area: Rect, session: &TypingSession, theme: &
     let mut lines: Vec<Line> = Vec::new();
     let mut current: Vec<Span> = Vec::new();
     let mut col = 0usize;
-    let mut caret_row = 0u16;
+    let mut caret_line = 0usize;
     let mut caret_col = 0u16;
 
     for (wi, word) in session.words.iter().enumerate() {
@@ -95,7 +95,7 @@ fn render_words(frame: &mut Frame, area: Rect, session: &TypingSession, theme: &
         }
 
         if wi == session.cursor_word {
-            caret_row = lines.len() as u16;
+            caret_line = lines.len();
             let within = word.typed.len().min(word_len);
             caret_col = (col + within) as u16;
         }
@@ -110,11 +110,18 @@ fn render_words(frame: &mut Frame, area: Rect, session: &TypingSession, theme: &
         lines.push(Line::from(current));
     }
 
-    frame.render_widget(Paragraph::new(lines), area);
+    let window_start = caret_line.saturating_sub(1);
+    let visible: Vec<Line> = lines
+        .into_iter()
+        .skip(window_start)
+        .take(area.height as usize)
+        .collect();
+    frame.render_widget(Paragraph::new(visible), area);
 
-    if caret_row < area.height {
+    let cursor_row = (caret_line - window_start) as u16;
+    if cursor_row < area.height {
         let x = area.x + caret_col.min(area.width.saturating_sub(1));
-        let y = area.y + caret_row;
+        let y = area.y + cursor_row;
         frame.set_cursor_position((x, y));
     }
 }

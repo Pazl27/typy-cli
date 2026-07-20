@@ -32,8 +32,9 @@ pub struct TypingSession {
 
 impl TypingSession {
     pub fn new(mode: &Mode, language: &str) -> Result<Self> {
-        let mut list =
-            word_provider::get_words(language).context("Failed to get words from file")?;
+        let min_words = (mode.duration as usize).saturating_mul(5).max(60);
+        let mut list = word_provider::get_words(language, min_words)
+            .context("Failed to get words from file")?;
         mode.transform(&mut list);
 
         let words = list
