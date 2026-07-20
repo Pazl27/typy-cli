@@ -85,9 +85,6 @@ fn render_words(frame: &mut Frame, area: Rect, session: &TypingSession, theme: &
     for (wi, word) in session.words.iter().enumerate() {
         let word_len = word.target.len().max(word.typed.len());
 
-        // Greedy word wrap: move the word to the next line if it (plus the
-        // separating space) no longer fits. Owning the wrap ourselves means the
-        // caret coordinate always matches what is drawn.
         if col > 0 && col + 1 + word_len > width {
             lines.push(Line::from(std::mem::take(&mut current)));
             col = 0;
@@ -115,8 +112,6 @@ fn render_words(frame: &mut Frame, area: Rect, session: &TypingSession, theme: &
 
     frame.render_widget(Paragraph::new(lines), area);
 
-    // Place the real terminal cursor at the caret; its shape/blink is set by the
-    // app loop. This keeps the character under the caret visible.
     if caret_row < area.height {
         let x = area.x + caret_col.min(area.width.saturating_sub(1));
         let y = area.y + caret_row;

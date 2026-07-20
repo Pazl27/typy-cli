@@ -1,5 +1,5 @@
 use std::io::stdout;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use anyhow::Result;
 use crossterm::cursor::SetCursorStyle;
@@ -41,6 +41,8 @@ pub struct App {
     pub session: Option<TypingSession>,
     pub settings: Option<SettingsState>,
     pub stats: Option<StatsData>,
+    pub direct: bool,
+    results_opened: Option<Instant>,
 }
 
 impl App {
@@ -50,6 +52,7 @@ impl App {
         language: String,
         mode_tokens: Vec<String>,
         time: u64,
+        direct: bool,
     ) -> Self {
         App {
             screen: Screen::Home,
@@ -63,6 +66,8 @@ impl App {
             session: None,
             settings: None,
             stats: None,
+            direct,
+            results_opened: None,
         }
     }
 
@@ -152,6 +157,7 @@ impl App {
             let _ = Data::save_data(score);
         }
         self.screen = Screen::Results;
+        self.results_opened = Some(Instant::now());
     }
 
     fn handle_event(&mut self, event: Event) {
@@ -196,8 +202,12 @@ impl App {
         };
         match key.code {
             KeyCode::Esc => {
-                self.session = None;
-                self.screen = Screen::Home;
+                if self.direct {
+                    self.should_quit = true;
+                } else {
+                    self.session = None;
+                    self.screen = Screen::Home;
+                }
                 return;
             }
             KeyCode::Backspace => session.backspace(),
@@ -210,8 +220,18 @@ impl App {
         }
     }
 
-    fn handle_results_key(&mut self, key: KeyEvent) {
-        match key.code {
+    fn handle_results_key(&mut self, _key: KeyEvent) {
+        if let Some(opened) = self.results_opened {
+            if opened.elapsed() < Duration::from_millis(600) {
+                return;
+            }
+        }
+
+        if self.direct {
+            self.should_quit = true;
+            return;
+        }
+        match _key.code {
             KeyCode::Enter => self.start_test(),
             KeyCode::Char('q') | KeyCode::Esc => {
                 self.session = None;
@@ -307,11 +327,15 @@ pub fn run(
     language: String,
     mode_tokens: Vec<String>,
     time: u64,
+    direct: bool,
 ) -> Result<()> {
     let mut tui = Tui::new()?;
     tui.enter()?;
 
-    let mut app = App::new(theme, cursor_style, language, mode_tokens, time);
+    let mut app = App::new(theme, cursor_style, language, mode_tokens, time, direct);
+    if direct {
+        app.start_test();
+    }
 
     let result = (|| -> Result<()> {
         while !app.should_quit {

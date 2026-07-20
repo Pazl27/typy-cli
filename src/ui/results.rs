@@ -35,7 +35,7 @@ pub fn render(frame: &mut Frame, app: &App) {
 
     render_headline(frame, rows[0], stats, &theme);
     render_graph(frame, rows[2], stats, &theme);
-    render_footer(frame, rows[4], &theme);
+    render_footer(frame, rows[4], theme, app.direct);
 }
 
 fn centered_rect(area: Rect, width: u16, height: u16) -> Rect {
@@ -147,7 +147,7 @@ fn render_graph(frame: &mut Frame, area: Rect, stats: &Stats, theme: &Theme) {
     frame.render_widget(chart, area);
 }
 
-fn render_footer(frame: &mut Frame, area: Rect, theme: &Theme) {
+fn render_footer(frame: &mut Frame, area: Rect, theme: &Theme, direct: bool) {
     let key = |k: &'static str| {
         Span::styled(
             k,
@@ -157,12 +157,16 @@ fn render_footer(frame: &mut Frame, area: Rect, theme: &Theme) {
         )
     };
     let label = |t: &'static str| Span::styled(t, Style::default().fg(theme.missing));
-    let line = Line::from(vec![
-        key(" enter "),
-        label("restart   "),
-        key(" q "),
-        label("home"),
-    ]);
+    let line = if direct {
+        Line::from(label("press any key to exit"))
+    } else {
+        Line::from(vec![
+            key(" enter "),
+            label("restart   "),
+            key(" q "),
+            label("home"),
+        ])
+    };
     frame.render_widget(Paragraph::new(line).alignment(Alignment::Center), area);
 }
 
