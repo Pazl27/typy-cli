@@ -9,6 +9,7 @@ pub enum ModeType {
     Normal,
     Uppercase,
     Punctuation,
+    Numbers,
 }
 
 impl ModeType {
@@ -17,6 +18,7 @@ impl ModeType {
             ModeType::Normal => "normal",
             ModeType::Uppercase => "uppercase",
             ModeType::Punctuation => "punctuation",
+            ModeType::Numbers => "numbers",
         }
     }
 }
@@ -28,6 +30,7 @@ impl FromStr for ModeType {
         match input {
             "uppercase" => Ok(ModeType::Uppercase),
             "punctuation" => Ok(ModeType::Punctuation),
+            "numbers" => Ok(ModeType::Numbers),
             "normal" => Ok(ModeType::Normal),
             _ => Err(()),
         }
@@ -51,6 +54,7 @@ impl Mode {
                 "normal" => modes.push(ModeType::Normal),
                 "uppercase" => modes.push(ModeType::Uppercase),
                 "punctuation" => modes.push(ModeType::Punctuation),
+                "numbers" => modes.push(ModeType::Numbers),
                 _ => return Err(anyhow::anyhow!("Invalid mode: {}", mode_str)),
             }
         }
@@ -109,6 +113,16 @@ impl Mode {
                                         punctuations[rng.random_range(0..punctuations.len())];
                                     item.push_str(punctuation);
                                 }
+                            }
+                        }
+                    }
+                }
+                ModeType::Numbers => {
+                    for sublist in list.iter_mut() {
+                        for item in sublist.iter_mut() {
+                            if rng.random_bool(self.settings.numbers_chance.into()) {
+                                let n: u32 = rng.random_range(0..10000);
+                                *item = n.to_string();
                             }
                         }
                     }

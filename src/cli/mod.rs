@@ -59,7 +59,34 @@ pub fn run() -> Result<()> {
     Mode::from_str(mode_tokens.iter().map(|s| s.as_str()).collect())
         .context("Failed to parse mode")?;
 
-    let direct = cli.time.is_some() || !cli.mode.is_empty();
+    let (code_mode, code_language) = match &cli.code {
+        Some(lang) if !lang.is_empty() => (true, lang.clone()),
+        Some(_) => (true, "any".to_string()),
+        None => {
+            let config = config::toml_parser::get_config();
+            let guard = config.lock().ok();
+            let content = guard
+                .as_ref()
+                .and_then(|c| c.get_content())
+                .unwrap_or_default();
+            let code_language = guard
+                .as_ref()
+                .and_then(|c| c.get_code_language())
+                .unwrap_or_else(|| "any".to_string());
+            (content == "code", code_language)
+        }
+    };
 
-    app::run(theme, cursor_style, language, mode_tokens, time, direct)
+    let direct = cli.time.is_some() || !cli.mode.is_empty() || cli.code.is_some();
+
+    app::run(
+        theme,
+        cursor_style,
+        language,
+        mode_tokens,
+        time,
+        code_mode,
+        code_language,
+        direct,
+    )
 }

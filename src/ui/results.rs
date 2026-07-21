@@ -18,7 +18,7 @@ pub fn render(frame: &mut Frame, app: &App) {
     let Some(session) = app.session.as_ref() else {
         return;
     };
-    let stats = &session.stats;
+    let stats = session.stats();
 
     let panel = centered_rect(frame.area(), PANEL_WIDTH, PANEL_HEIGHT);
 

@@ -19,6 +19,10 @@ pub struct Theme {
     pub graph_data: Color,
     pub graph_title: Color,
     pub graph_axis: Color,
+    pub keyword: Color,
+    pub string: Color,
+    pub comment: Color,
+    pub number: Color,
 }
 
 #[derive(Deserialize)]
@@ -31,6 +35,10 @@ struct ThemeSpec {
     graph_data: Option<String>,
     graph_title: Option<String>,
     graph_axis: Option<String>,
+    keyword: Option<String>,
+    string: Option<String>,
+    comment: Option<String>,
+    number: Option<String>,
 }
 
 impl ThemeSpec {
@@ -39,15 +47,21 @@ impl ThemeSpec {
         let missing = parse_color(self.missing).unwrap_or(Color::Gray);
         let error = parse_color(self.error).unwrap_or(Color::Red);
         let accent = parse_color(self.accent).unwrap_or(Color::Yellow);
+        let graph_data = parse_color(self.graph_data).unwrap_or(accent);
+        let graph_title = parse_color(self.graph_title).unwrap_or(error);
         Theme {
             name: self.name.unwrap_or_else(|| fallback_name.to_string()),
             fg,
             missing,
             error,
             accent,
-            graph_data: parse_color(self.graph_data).unwrap_or(accent),
-            graph_title: parse_color(self.graph_title).unwrap_or(error),
+            graph_data,
+            graph_title,
             graph_axis: parse_color(self.graph_axis).unwrap_or(missing),
+            keyword: parse_color(self.keyword).unwrap_or(accent),
+            string: parse_color(self.string).unwrap_or(graph_data),
+            comment: parse_color(self.comment).unwrap_or(missing),
+            number: parse_color(self.number).unwrap_or(graph_title),
         }
     }
 }
@@ -113,6 +127,10 @@ fn fallback_theme() -> Theme {
         graph_data: Color::Rgb(166, 227, 161),
         graph_title: Color::Rgb(203, 166, 247),
         graph_axis: Color::Rgb(88, 91, 112),
+        keyword: Color::Rgb(203, 166, 247),
+        string: Color::Rgb(166, 227, 161),
+        comment: Color::Rgb(108, 112, 134),
+        number: Color::Rgb(250, 179, 135),
     }
 }
 

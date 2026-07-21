@@ -1,5 +1,6 @@
 mod app;
 mod cli;
+mod code_provider;
 mod config;
 mod mode;
 mod scores;

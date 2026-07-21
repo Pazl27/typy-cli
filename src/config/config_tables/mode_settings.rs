@@ -7,6 +7,7 @@ pub struct ModeSettings {
     pub default_modes: Vec<ModeType>,
     pub uppercase_chance: f32,
     pub punctuation_chance: f32,
+    pub numbers_chance: f32,
 }
 
 impl ModeSettings {
@@ -42,6 +43,7 @@ impl ModeSettings {
                     default_modes,
                     uppercase_chance,
                     punctuation_chance,
+                    numbers_chance: 0.2,
                 }
             }
             None => ModeSettings::default(),
@@ -56,6 +58,7 @@ impl Default for ModeSettings {
             default_modes: vec![ModeType::Normal],
             uppercase_chance: 0.2,
             punctuation_chance: 0.2,
+            numbers_chance: 0.2,
         }
     }
 }

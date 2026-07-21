@@ -9,10 +9,11 @@ use crossterm::execute;
 use crate::config::save_settings;
 use crate::mode::Mode;
 use crate::scores::progress::{Averages, Data, Score};
+use crate::scores::Stats;
 use crate::settings::SettingsState;
 use crate::theme::{self, Theme};
 use crate::tui::{events, Tui};
-use crate::typing::TypingSession;
+use crate::typing::{CodeSession, TypingSession};
 use crate::ui;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -29,6 +30,34 @@ pub struct StatsData {
     pub scores: Vec<Score>,
 }
 
+pub enum Game {
+    Words(TypingSession),
+    Code(CodeSession),
+}
+
+impl Game {
+    pub fn is_finished(&self) -> bool {
+        match self {
+            Game::Words(s) => s.is_finished(),
+            Game::Code(s) => s.is_finished(),
+        }
+    }
+
+    fn tick(&mut self) {
+        match self {
+            Game::Words(s) => s.tick(),
+            Game::Code(s) => s.tick(),
+        }
+    }
+
+    pub fn stats(&self) -> &Stats {
+        match self {
+            Game::Words(s) => &s.stats,
+            Game::Code(s) => &s.stats,
+        }
+    }
+}
+
 pub struct App {
     pub screen: Screen,
     pub should_quit: bool,
@@ -38,23 +67,29 @@ pub struct App {
     pub language: String,
     pub mode_tokens: Vec<String>,
     pub time: u64,
-    pub session: Option<TypingSession>,
+    pub code_mode: bool,
+    pub code_language: String,
+    pub session: Option<Game>,
     pub settings: Option<SettingsState>,
     pub stats: Option<StatsData>,
     pub direct: bool,
     pub record: u32,
     pub previous_record: u32,
     pub new_record: bool,
+    pub error: Option<String>,
     results_opened: Option<Instant>,
 }
 
 impl App {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         theme: Theme,
         cursor_style: String,
         language: String,
         mode_tokens: Vec<String>,
         time: u64,
+        code_mode: bool,
+        code_language: String,
         direct: bool,
     ) -> Self {
         App {
@@ -66,6 +101,8 @@ impl App {
             language,
             mode_tokens,
             time,
+            code_mode,
+            code_language,
             session: None,
             settings: None,
             stats: None,
@@ -73,6 +110,7 @@ impl App {
             record: Data::get_record(time).unwrap_or(0),
             previous_record: 0,
             new_record: false,
+            error: None,
             results_opened: None,
         }
     }
@@ -85,25 +123,34 @@ impl App {
         if self.screen != Screen::Typing {
             return;
         }
-        if let Some(session) = self.session.as_mut() {
-            session.tick();
-            if session.is_finished() {
+        if let Some(game) = self.session.as_mut() {
+            game.tick();
+            if game.is_finished() {
                 self.finish_test();
             }
         }
     }
 
     fn start_test(&mut self) {
-        let mode = Mode::from_str(self.mode_tokens.iter().map(|s| s.as_str()).collect())
-            .unwrap_or_else(|_| Mode::from_str(vec!["normal"]).unwrap())
-            .add_duration(self.time);
+        let game = if self.code_mode {
+            CodeSession::new(&self.code_language).map(Game::Code)
+        } else {
+            let mode = Mode::from_str(self.mode_tokens.iter().map(|s| s.as_str()).collect())
+                .unwrap_or_else(|_| Mode::from_str(vec!["normal"]).unwrap())
+                .add_duration(self.time);
+            TypingSession::new(&mode, &self.language).map(Game::Words)
+        };
 
-        match TypingSession::new(&mode, &self.language) {
-            Ok(session) => {
-                self.session = Some(session);
+        match game {
+            Ok(game) => {
+                self.error = None;
+                self.session = Some(game);
                 self.screen = Screen::Typing;
             }
-            Err(_) => self.screen = Screen::Home,
+            Err(e) => {
+                self.error = Some(format!("{e}"));
+                self.screen = Screen::Home;
+            }
         }
     }
 
@@ -119,6 +166,8 @@ impl App {
         self.settings = Some(SettingsState::new(
             &self.theme_name,
             &self.cursor_style,
+            self.code_mode,
+            &self.code_language,
             &self.language,
             &self.mode_tokens,
             self.time,
@@ -127,31 +176,45 @@ impl App {
     }
 
     fn apply_settings(&mut self) {
-        let Some((theme_name, cursor_style, language, mode_tokens, time, mode_default)) =
-            self.settings.as_ref().map(|s| {
-                (
-                    s.theme_name(),
-                    s.cursor_style(),
-                    s.language(),
-                    s.mode_tokens(),
-                    s.time(),
-                    s.mode_default_string(),
-                )
-            })
-        else {
+        let Some((
+            theme_name,
+            cursor_style,
+            code_mode,
+            code_language,
+            language,
+            mode_tokens,
+            time,
+            mode_default,
+        )) = self.settings.as_ref().map(|s| {
+            (
+                s.theme_name(),
+                s.cursor_style(),
+                s.code_mode(),
+                s.code_language(),
+                s.language(),
+                s.mode_tokens(),
+                s.time(),
+                s.mode_default_string(),
+            )
+        }) else {
             return;
         };
 
         self.theme_name = theme_name;
-        self.theme = theme::load(&self.theme_name);
         self.cursor_style = cursor_style;
+        self.code_mode = code_mode;
+        self.code_language = code_language;
         self.language = language;
         self.mode_tokens = mode_tokens;
         self.time = time;
+
+        self.theme = theme::load(&self.theme_name);
         self.refresh_record();
         let _ = save_settings(
             &self.theme_name,
             &self.cursor_style,
+            if self.code_mode { "code" } else { "words" },
+            &self.code_language,
             &self.language,
             &mode_default,
             self.time,
@@ -159,14 +222,20 @@ impl App {
     }
 
     fn finish_test(&mut self) {
-        if let Some(session) = self.session.as_ref() {
-            let wpm = session.stats.wpm() as u32;
-            self.previous_record = Data::get_record(self.time).unwrap_or(0);
-            self.new_record = wpm > self.previous_record;
+        if let Some(game) = self.session.as_ref() {
+            let stats = game.stats();
+            let wpm = stats.wpm() as u32;
+            let score = Score::new(wpm, stats.raw_wpm() as u32, stats.accuracy() as f32);
 
-            let score = Score::new(wpm, session.stats.raw_wpm() as u32, session.stats.accuracy() as f32);
-            let _ = Data::save_data(score, self.time);
-            self.refresh_record();
+            if self.code_mode {
+                self.new_record = false;
+                let _ = Data::save_data(score, 0);
+            } else {
+                self.previous_record = Data::get_record(self.time).unwrap_or(0);
+                self.new_record = wpm > self.previous_record;
+                let _ = Data::save_data(score, self.time);
+                self.refresh_record();
+            }
         }
         self.screen = Screen::Results;
         self.results_opened = Some(Instant::now());
@@ -208,26 +277,35 @@ impl App {
     }
 
     fn handle_typing_key(&mut self, key: KeyEvent) {
-        let Some(session) = self.session.as_mut() else {
+        if key.code == KeyCode::Esc {
+            if self.direct {
+                self.should_quit = true;
+            } else {
+                self.session = None;
+                self.screen = Screen::Home;
+            }
+            return;
+        }
+
+        let Some(game) = self.session.as_mut() else {
             self.screen = Screen::Home;
             return;
         };
-        match key.code {
-            KeyCode::Esc => {
-                if self.direct {
-                    self.should_quit = true;
-                } else {
-                    self.session = None;
-                    self.screen = Screen::Home;
-                }
-                return;
-            }
-            KeyCode::Backspace => session.backspace(),
-            KeyCode::Char(' ') => session.space(),
-            KeyCode::Char(c) => session.type_char(c),
-            _ => {}
+        match game {
+            Game::Words(s) => match key.code {
+                KeyCode::Backspace => s.backspace(),
+                KeyCode::Char(' ') => s.space(),
+                KeyCode::Char(c) => s.type_char(c),
+                _ => {}
+            },
+            Game::Code(s) => match key.code {
+                KeyCode::Backspace => s.backspace(),
+                KeyCode::Enter => s.newline(),
+                KeyCode::Char(c) => s.type_char(c),
+                _ => {}
+            },
         }
-        if session.is_finished() {
+        if game.is_finished() {
             self.finish_test();
         }
     }
@@ -333,18 +411,30 @@ fn cursor_shape(name: &str) -> SetCursorStyle {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn run(
     theme: Theme,
     cursor_style: String,
     language: String,
     mode_tokens: Vec<String>,
     time: u64,
+    code_mode: bool,
+    code_language: String,
     direct: bool,
 ) -> Result<()> {
     let mut tui = Tui::new()?;
     tui.enter()?;
 
-    let mut app = App::new(theme, cursor_style, language, mode_tokens, time, direct);
+    let mut app = App::new(
+        theme,
+        cursor_style,
+        language,
+        mode_tokens,
+        time,
+        code_mode,
+        code_language,
+        direct,
+    );
     if direct {
         app.start_test();
     }

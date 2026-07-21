@@ -1,5 +1,4 @@
-use std::collections::BTreeSet;
-
+use crate::code_provider;
 use crate::theme::available_themes;
 use crate::word_provider::available_languages;
 
@@ -14,21 +13,16 @@ const CURSOR_OPTIONS: &[&str] = &[
     "blinking bar",
 ];
 
-fn mode_options() -> Vec<(&'static str, Vec<&'static str>)> {
-    vec![
-        ("normal", vec!["normal"]),
-        ("uppercase", vec!["uppercase"]),
-        ("punctuation", vec!["punctuation"]),
-        ("uppercase + punctuation", vec!["uppercase", "punctuation"]),
-    ]
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Field {
+    Mode,
     Theme,
     Cursor,
+    CodeLanguage,
+    Punctuation,
+    Numbers,
+    Uppercase,
     Language,
-    Mode,
     Time,
 }
 
@@ -40,6 +34,21 @@ pub struct Row {
 }
 
 pub struct SettingsState {
+    coding: bool,
+    theme: String,
+    cursor_style: String,
+    code_language: String,
+    punctuation: bool,
+    numbers: bool,
+    uppercase: bool,
+    language: String,
+    time: u64,
+
+    themes: Vec<String>,
+    cursors: Vec<String>,
+    code_languages: Vec<String>,
+    languages: Vec<String>,
+
     pub rows: Vec<Row>,
     pub cursor: usize,
     pub open: bool,
@@ -47,70 +56,120 @@ pub struct SettingsState {
 }
 
 impl SettingsState {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         theme: &str,
         cursor: &str,
+        coding: bool,
+        code_language: &str,
         language: &str,
         mode_tokens: &[String],
         time: u64,
     ) -> Self {
-        let themes = available_themes();
-        let theme_sel = themes.iter().position(|t| t == theme).unwrap_or(0);
+        let has = |token: &str| mode_tokens.iter().any(|t| t == token);
 
-        let cursor_options: Vec<String> = CURSOR_OPTIONS.iter().map(|c| c.to_string()).collect();
-        let cursor_sel = cursor_options.iter().position(|c| c == cursor).unwrap_or(0);
+        let mut code_languages = vec!["any".to_string()];
+        code_languages.extend(code_provider::available_languages());
 
-        let languages = available_languages();
-        let language_sel = languages.iter().position(|l| l == language).unwrap_or(0);
+        let code_language = if code_language.is_empty() {
+            "any".to_string()
+        } else {
+            code_language.to_string()
+        };
 
-        let modes = mode_options();
-        let mode_labels: Vec<String> = modes.iter().map(|(l, _)| l.to_string()).collect();
-        let mode_sel = modes
-            .iter()
-            .position(|(_, toks)| tokens_match(toks, mode_tokens))
-            .unwrap_or(0);
+        let mut state = SettingsState {
+            coding,
+            theme: theme.to_string(),
+            cursor_style: cursor.to_string(),
+            code_language,
+            punctuation: has("punctuation"),
+            numbers: has("numbers"),
+            uppercase: has("uppercase"),
+            language: language.to_string(),
+            time,
+            themes: available_themes(),
+            cursors: CURSOR_OPTIONS.iter().map(|c| c.to_string()).collect(),
+            code_languages,
+            languages: available_languages(),
+            rows: Vec::new(),
+            cursor: 0,
+            open: false,
+            dropdown_cursor: 0,
+        };
+        state.rebuild_rows();
+        state
+    }
 
-        let time_labels: Vec<String> = TIME_OPTIONS.iter().map(|t| t.to_string()).collect();
-        let time_sel = TIME_OPTIONS.iter().position(|&t| t == time).unwrap_or(1);
+    fn rebuild_rows(&mut self) {
+        let onoff = || vec!["off".to_string(), "on".to_string()];
+        let pick = |options: &[String], value: &str| {
+            options.iter().position(|o| o == value).unwrap_or(0)
+        };
 
-        let rows = vec![
+        let mut rows = vec![
+            Row {
+                label: "mode",
+                field: Field::Mode,
+                options: vec!["typing".to_string(), "coding".to_string()],
+                selected: self.coding as usize,
+            },
             Row {
                 label: "theme",
                 field: Field::Theme,
-                options: themes,
-                selected: theme_sel,
+                options: self.themes.clone(),
+                selected: pick(&self.themes, &self.theme),
             },
             Row {
                 label: "cursor",
                 field: Field::Cursor,
-                options: cursor_options,
-                selected: cursor_sel,
-            },
-            Row {
-                label: "language",
-                field: Field::Language,
-                options: languages,
-                selected: language_sel,
-            },
-            Row {
-                label: "mode",
-                field: Field::Mode,
-                options: mode_labels,
-                selected: mode_sel,
-            },
-            Row {
-                label: "time",
-                field: Field::Time,
-                options: time_labels,
-                selected: time_sel,
+                options: self.cursors.clone(),
+                selected: pick(&self.cursors, &self.cursor_style),
             },
         ];
 
-        SettingsState {
-            rows,
-            cursor: 0,
-            open: false,
-            dropdown_cursor: 0,
+        if self.coding {
+            rows.push(Row {
+                label: "code lang",
+                field: Field::CodeLanguage,
+                options: self.code_languages.clone(),
+                selected: pick(&self.code_languages, &self.code_language),
+            });
+        } else {
+            rows.push(Row {
+                label: "punctuation",
+                field: Field::Punctuation,
+                options: onoff(),
+                selected: self.punctuation as usize,
+            });
+            rows.push(Row {
+                label: "numbers",
+                field: Field::Numbers,
+                options: onoff(),
+                selected: self.numbers as usize,
+            });
+            rows.push(Row {
+                label: "uppercase",
+                field: Field::Uppercase,
+                options: onoff(),
+                selected: self.uppercase as usize,
+            });
+            rows.push(Row {
+                label: "language",
+                field: Field::Language,
+                options: self.languages.clone(),
+                selected: pick(&self.languages, &self.language),
+            });
+            rows.push(Row {
+                label: "time",
+                field: Field::Time,
+                options: TIME_OPTIONS.iter().map(|t| t.to_string()).collect(),
+                selected: TIME_OPTIONS.iter().position(|&t| t == self.time).unwrap_or(1),
+            });
+        }
+
+        self.rows = rows;
+        if self.cursor >= self.rows.len() {
+            self.cursor = self.rows.len().saturating_sub(1);
         }
     }
 
@@ -141,51 +200,65 @@ impl SettingsState {
     }
 
     pub fn confirm(&mut self) {
-        self.rows[self.cursor].selected = self.dropdown_cursor;
+        let field = self.rows[self.cursor].field;
+        let idx = self.dropdown_cursor;
+        match field {
+            Field::Mode => self.coding = idx == 1,
+            Field::Theme => self.theme = self.themes[idx].clone(),
+            Field::Cursor => self.cursor_style = self.cursors[idx].clone(),
+            Field::CodeLanguage => self.code_language = self.code_languages[idx].clone(),
+            Field::Punctuation => self.punctuation = idx == 1,
+            Field::Numbers => self.numbers = idx == 1,
+            Field::Uppercase => self.uppercase = idx == 1,
+            Field::Language => self.language = self.languages[idx].clone(),
+            Field::Time => self.time = TIME_OPTIONS.get(idx).copied().unwrap_or(30),
+        }
         self.open = false;
-    }
-
-    fn option_of(&self, field: Field) -> &str {
-        let row = self
-            .rows
-            .iter()
-            .find(|r| r.field == field)
-            .expect("settings row missing");
-        &row.options[row.selected]
+        self.rebuild_rows();
     }
 
     pub fn theme_name(&self) -> String {
-        self.option_of(Field::Theme).to_string()
+        self.theme.clone()
     }
 
     pub fn cursor_style(&self) -> String {
-        self.option_of(Field::Cursor).to_string()
+        self.cursor_style.clone()
+    }
+
+    pub fn code_mode(&self) -> bool {
+        self.coding
+    }
+
+    pub fn code_language(&self) -> String {
+        self.code_language.clone()
     }
 
     pub fn language(&self) -> String {
-        self.option_of(Field::Language).to_string()
+        self.language.clone()
     }
 
     pub fn time(&self) -> u64 {
-        self.option_of(Field::Time).parse().unwrap_or(30)
+        self.time
     }
 
     pub fn mode_tokens(&self) -> Vec<String> {
-        let label = self.option_of(Field::Mode);
-        mode_options()
-            .into_iter()
-            .find(|(l, _)| *l == label)
-            .map(|(_, toks)| toks.iter().map(|s| s.to_string()).collect())
-            .unwrap_or_else(|| vec!["normal".to_string()])
+        let mut tokens = Vec::new();
+        if self.uppercase {
+            tokens.push("uppercase".to_string());
+        }
+        if self.punctuation {
+            tokens.push("punctuation".to_string());
+        }
+        if self.numbers {
+            tokens.push("numbers".to_string());
+        }
+        if tokens.is_empty() {
+            tokens.push("normal".to_string());
+        }
+        tokens
     }
 
     pub fn mode_default_string(&self) -> String {
         self.mode_tokens().join(", ")
     }
-}
-
-fn tokens_match(preset: &[&str], active: &[String]) -> bool {
-    let a: BTreeSet<String> = preset.iter().map(|s| s.to_string()).collect();
-    let b: BTreeSet<String> = active.iter().cloned().collect();
-    a == b
 }

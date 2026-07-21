@@ -43,11 +43,20 @@ fn render_hero(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
         .collect();
 
     lines.push(Line::from(""));
+    let subtitle = if app.code_mode {
+        if app.code_language.is_empty() || app.code_language == "any" {
+            "coding".to_string()
+        } else {
+            format!("coding  ·  {}", app.code_language)
+        }
+    } else {
+        format!("{}  ·  {}s", app.language, app.time)
+    };
     lines.push(Line::from(Span::styled(
-        format!("{}  ·  {}s", app.language, app.time),
+        subtitle,
         Style::default().fg(theme.missing),
     )));
-    if app.record > 0 {
+    if !app.code_mode && app.record > 0 {
         lines.push(Line::from(vec![
             Span::styled("best  ", Style::default().fg(theme.missing)),
             Span::styled(
@@ -67,6 +76,13 @@ fn render_hero(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
         ),
         Span::styled(" to start typing", Style::default().fg(theme.missing)),
     ]));
+    if let Some(error) = &app.error {
+        lines.push(Line::from(""));
+        lines.push(Line::from(Span::styled(
+            error.clone(),
+            Style::default().fg(theme.error),
+        )));
+    }
 
     let block = super::centered_vertical(area, lines.len() as u16);
     frame.render_widget(

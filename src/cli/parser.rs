@@ -36,6 +36,17 @@ pub(crate) struct Cli {
     pub(crate) mode: Vec<String>,
 
     #[arg(
+        short = 'C',
+        long = "code",
+        value_name = "LANG",
+        num_args = 0..=1,
+        default_missing_value = "",
+        help_heading = "Game options",
+        help = "Type a code snippet instead of words.\nOptionally give a language (python, rust, go, c, javascript).\nStarts immediately."
+    )]
+    pub(crate) code: Option<String>,
+
+    #[arg(
         short = 's',
         long = "stats",
         help_heading = "Utility",

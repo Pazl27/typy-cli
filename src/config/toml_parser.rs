@@ -27,6 +27,8 @@ pub struct GameTable {
 pub struct ConfigToml {
     theme: Option<String>,
     cursor: Option<String>,
+    content: Option<String>,
+    code_language: Option<String>,
     modes: Option<ModesTable>,
     language: Option<LanguageTable>,
     game: Option<GameTable>,
@@ -61,6 +63,14 @@ impl ConfigToml {
 
     pub fn get_cursor(&self) -> Option<String> {
         self.cursor.clone()
+    }
+
+    pub fn get_content(&self) -> Option<String> {
+        self.content.clone()
+    }
+
+    pub fn get_code_language(&self) -> Option<String> {
+        self.code_language.clone()
     }
 
     pub fn get_modes(&self) -> Option<ModesTable> {

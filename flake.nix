@@ -69,6 +69,8 @@
           nativeBuildInputs = with pkgs; [
             rust-bin.stable.latest.default
             pkg-config
+            # Pinned Python for scripts/generate-snippets.py (stdlib only).
+            python312
           ];
           # Let pkg-config find openssl for the `reqwest` build.
           PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";

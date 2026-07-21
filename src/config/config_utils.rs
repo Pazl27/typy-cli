@@ -33,6 +33,8 @@ fn config_path() -> Result<PathBuf> {
 pub fn save_settings(
     theme: &str,
     cursor: &str,
+    content: &str,
+    code_language: &str,
     language: &str,
     mode: &str,
     time: u64,
@@ -47,6 +49,8 @@ pub fn save_settings(
 
     doc.as_table_mut().insert("theme", value(theme));
     doc.as_table_mut().insert("cursor", value(cursor));
+    doc.as_table_mut().insert("content", value(content));
+    doc.as_table_mut().insert("code_language", value(code_language));
     set_kv(&mut doc, "language", "lang", value(language));
     set_kv(&mut doc, "modes", "default_mode", value(mode));
     set_kv(&mut doc, "game", "time", value(time as i64));
