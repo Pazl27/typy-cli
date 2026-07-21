@@ -2,6 +2,7 @@ use anyhow::{Context, Result};
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use serde_json::to_writer_pretty;
+use std::collections::BTreeMap;
 use std::fs::{self, File};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -44,20 +45,40 @@ pub struct Score {
 pub struct Data {
     pub scores: Vec<Score>,
     pub averages: Averages,
+    #[serde(default)]
+    pub records: BTreeMap<u64, u32>,
 }
 
 impl Data {
-    fn new(scores: Vec<Score>, averages: Averages) -> Self {
-        Data { scores, averages }
+    fn new(scores: Vec<Score>, averages: Averages, records: BTreeMap<u64, u32>) -> Self {
+        Data {
+            scores,
+            averages,
+            records,
+        }
     }
 
-    pub fn save_data(score: Score) -> Result<()> {
+    pub fn save_data(score: Score, duration: u64) -> Result<()> {
+        let wpm = score.wpm;
         let scores = Score::update_scores(&score)?;
+        let mut records = Data::get_records()?;
+        let best = records.entry(duration).or_insert(0);
+        if wpm > *best {
+            *best = wpm;
+        }
         let averages = Averages::new(score)?;
 
-        let data = Data::new(scores, averages);
+        let data = Data::new(scores, averages, records);
         Self::write_to_file(data)?;
         Ok(())
+    }
+
+    pub fn get_records() -> Result<BTreeMap<u64, u32>> {
+        Ok(Data::get_data()?.records)
+    }
+
+    pub fn get_record(duration: u64) -> Result<u32> {
+        Ok(Data::get_records()?.get(&duration).copied().unwrap_or(0))
     }
 
     pub fn get_data() -> Result<Data> {
@@ -126,6 +147,7 @@ impl Default for Data {
                     sum_all: 0.0,
                 },
             },
+            records: BTreeMap::new(),
         }
     }
 }

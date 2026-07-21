@@ -7,26 +7,6 @@ use std::sync::Mutex;
 use toml;
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct ThemeTable {
-    pub fg: Option<String>,
-    pub missing: Option<String>,
-    pub error: Option<String>,
-    pub accent: Option<String>,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct GraphTable {
-    pub data: Option<String>,
-    pub title: Option<String>,
-    pub axis: Option<String>,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct CursorTable {
-    pub style: Option<String>,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
 pub struct ModesTable {
     pub default_mode: Option<String>,
     pub uppercase_chance: Option<String>,
@@ -38,13 +18,18 @@ pub struct LanguageTable {
     pub lang: Option<String>,
 }
 
+#[derive(Serialize, Deserialize, Clone)]
+pub struct GameTable {
+    pub time: Option<u64>,
+}
+
 #[derive(Serialize, Deserialize, Default)]
 pub struct ConfigToml {
-    theme: Option<ThemeTable>,
-    graph: Option<GraphTable>,
-    cursor: Option<CursorTable>,
+    theme: Option<String>,
+    cursor: Option<String>,
     modes: Option<ModesTable>,
     language: Option<LanguageTable>,
+    game: Option<GameTable>,
 }
 
 impl ConfigToml {
@@ -70,15 +55,11 @@ impl ConfigToml {
         config_toml
     }
 
-    pub fn get_theme(&self) -> Option<ThemeTable> {
+    pub fn get_theme(&self) -> Option<String> {
         self.theme.clone()
     }
 
-    pub fn get_graph(&self) -> Option<GraphTable> {
-        self.graph.clone()
-    }
-
-    pub fn get_cursor(&self) -> Option<CursorTable> {
+    pub fn get_cursor(&self) -> Option<String> {
         self.cursor.clone()
     }
 
@@ -89,14 +70,16 @@ impl ConfigToml {
     pub fn get_language(&self) -> Option<LanguageTable> {
         self.language.clone()
     }
+
+    pub fn get_game(&self) -> Option<GameTable> {
+        self.game.clone()
+    }
 }
 
-// Declare the static instance of ConfigToml using lazy_static
 lazy_static! {
     static ref CONFIG: Mutex<ConfigToml> = Mutex::new(ConfigToml::new());
 }
 
-// Helper function to access the static CONFIG
 pub fn get_config() -> &'static Mutex<ConfigToml> {
     &CONFIG
 }

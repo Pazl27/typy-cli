@@ -1,0 +1,8 @@
+name = "Catppuccin Mocha"
+fg = "#cdd6f4"
+missing = "#6c7086"
+error = "#f38ba8"
+accent = "#f9e2af"
+graph_data = "#a6e3a1"
+graph_title = "#cba6f7"
+graph_axis = "#585b70"

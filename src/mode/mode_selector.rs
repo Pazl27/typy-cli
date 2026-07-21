@@ -11,6 +11,16 @@ pub enum ModeType {
     Punctuation,
 }
 
+impl ModeType {
+    pub fn token(&self) -> &'static str {
+        match self {
+            ModeType::Normal => "normal",
+            ModeType::Uppercase => "uppercase",
+            ModeType::Punctuation => "punctuation",
+        }
+    }
+}
+
 impl FromStr for ModeType {
     type Err = ();
 
@@ -45,7 +55,6 @@ impl Mode {
             }
         }
 
-        // If no specific mode is provided, default to normal
         modes.is_empty().then(|| {
             settings.default_modes.iter().for_each(|m| {
                 modes.push(m.clone());
@@ -144,7 +153,6 @@ mod mode_tests {
         let mode = Mode::from_str(vec!["uppercase"]).unwrap();
         let mut list = vec![vec!["hello".to_string(), "world".to_string()]];
         mode.transform(&mut list);
-        // Since the transformation is random, we can't assert exact values, but we can check the structure
         assert_eq!(list.len(), 1);
         assert_eq!(list[0].len(), 2);
     }
@@ -154,7 +162,6 @@ mod mode_tests {
         let mode = Mode::from_str(vec!["punctuation"]).unwrap();
         let mut list = vec![vec!["hello".to_string(), "world".to_string()]];
         mode.transform(&mut list);
-        // Since the transformation is random, we can't assert exact values, but we can check the structure
         assert_eq!(list.len(), 1);
         assert_eq!(list[0].len(), 2);
     }

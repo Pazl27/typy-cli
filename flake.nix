@@ -46,7 +46,7 @@
           inherit buildInputs nativeBuildInputs;
           postInstall = ''
             mkdir -p $out/share/typy
-            cp $src/resources/english.txt $out/share/typy/english.txt
+            cp $src/resources/lang/english.txt $out/share/typy/english.txt
 
             wrapProgram $out/bin/typy \
             --run "mkdir -p ~/.local/share/typy" \
@@ -62,6 +62,16 @@
         apps.default = {
           type = "app";
           program = "${self.packages.${system}.default}/bin/typy";
+        };
+
+        devShells.default = pkgs.mkShell {
+          inherit buildInputs;
+          nativeBuildInputs = with pkgs; [
+            rust-bin.stable.latest.default
+            pkg-config
+          ];
+          # Let pkg-config find openssl for the `reqwest` build.
+          PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
         };
       }
     );
