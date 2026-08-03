@@ -18,6 +18,15 @@ pub fn get_words(language: &str, min_words: usize) -> Result<Vec<Vec<String>>> {
     Ok(words)
 }
 
+pub fn supported_languages() -> Vec<String> {
+    [
+        "english", "french", "german", "italian", "romanian", "russian", "spanish",
+    ]
+    .iter()
+    .map(|s| s.to_string())
+    .collect()
+}
+
 pub fn available_languages() -> Vec<String> {
     let mut dirs: Vec<PathBuf> = Vec::new();
     if let Some(home) = dirs::home_dir() {

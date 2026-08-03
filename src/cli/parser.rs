@@ -1,4 +1,27 @@
-use clap::Parser;
+use clap::{Parser, ValueEnum};
+
+#[derive(Copy, Clone, PartialEq, Eq, ValueEnum)]
+pub(crate) enum GameMode {
+    Text,
+    Code,
+}
+
+#[derive(Copy, Clone, PartialEq, Eq, ValueEnum)]
+pub(crate) enum Modifier {
+    Punctuation,
+    Numbers,
+    Uppercase,
+}
+
+impl Modifier {
+    pub(crate) fn token(self) -> &'static str {
+        match self {
+            Modifier::Punctuation => "punctuation",
+            Modifier::Numbers => "numbers",
+            Modifier::Uppercase => "uppercase",
+        }
+    }
+}
 
 #[derive(Parser)]
 #[command(name = "typy")]
@@ -9,42 +32,51 @@ use clap::Parser;
 
 USAGE MODES:
   • Interactive:   typy                     - Open the app (home, settings, stats)
-  • Quick run:     typy -t 60               - Start a 60s test right away, then exit
-  • With mode:     typy -m punctuation      - Start a test with the given mode(s)
-  • Stats:         typy -s                  - Show statistics for your past games
-  • Config:        typy -c                  - Create and open the config file
+  • Words:         typy -m text -t 60       - A 60s words test, then exit
+  • With options:  typy -x punctuation numbers
+  • Code:          typy -m code -l rust     - Type a Rust snippet (or -l any)
+  • Language:      typy -l german           - Words test in German
+  • Stats:         typy -s
+  • Config:        typy -c
 
 For more information check: https://github.com/Pazl27/typy-cli")]
 pub(crate) struct Cli {
     #[arg(
-        short = 't',
-        long = "time",
-        value_name = "SECONDS",
-        help_heading = "Game options",
-        help = "Duration of the test in seconds.\nStarts a test immediately and exits when it finishes."
-    )]
-    pub(crate) time: Option<u64>,
-
-    #[arg(
         short = 'm',
         long = "mode",
         value_name = "MODE",
-        num_args = 1..,
         help_heading = "Game options",
-        help = "Mode(s) to play: normal, uppercase, punctuation.\nStarts a test immediately."
+        help = "What to type: text (words) or code. Default: text."
     )]
-    pub(crate) mode: Vec<String>,
+    pub(crate) mode: Option<GameMode>,
 
     #[arg(
-        short = 'C',
-        long = "code",
+        short = 'l',
+        long = "language",
         value_name = "LANG",
-        num_args = 0..=1,
-        default_missing_value = "",
         help_heading = "Game options",
-        help = "Type a code snippet instead of words.\nOptionally give a language (python, rust, go, c, javascript).\nStarts immediately."
+        help = "Language to use (works for text and code).\nText: english, german, ...   Code: rust, python, go, c, cpp, javascript, any."
     )]
-    pub(crate) code: Option<String>,
+    pub(crate) language: Option<String>,
+
+    #[arg(
+        short = 'x',
+        long = "modifiers",
+        value_name = "MOD",
+        num_args = 1..,
+        help_heading = "Text options",
+        help = "Extra text options (text mode only): punctuation, numbers, uppercase.\nCombine freely, e.g. -x punctuation numbers."
+    )]
+    pub(crate) modifiers: Vec<Modifier>,
+
+    #[arg(
+        short = 't',
+        long = "time",
+        value_name = "SECONDS",
+        help_heading = "Text options",
+        help = "Test duration in seconds (text mode)."
+    )]
+    pub(crate) time: Option<u64>,
 
     #[arg(
         short = 's',

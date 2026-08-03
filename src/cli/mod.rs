@@ -1,14 +1,15 @@
 mod parser;
 
-use anyhow::{Context, Result};
+use anyhow::{bail, Result};
 use clap::Parser;
-use parser::Cli;
+use parser::{Cli, GameMode};
 
 use crate::app;
+use crate::code_provider;
 use crate::config;
-use crate::mode::Mode;
 use crate::scores::progress::display;
 use crate::theme;
+use crate::word_provider;
 
 pub fn run() -> Result<()> {
     let cli = Cli::parse();
@@ -24,8 +25,6 @@ pub fn run() -> Result<()> {
         return Ok(());
     }
 
-    let language = config::language::Language::new().lang;
-
     let theme_name = config::toml_parser::get_config()
         .lock()
         .ok()
@@ -39,54 +38,100 @@ pub fn run() -> Result<()> {
         .and_then(|c| c.get_cursor())
         .unwrap_or_else(|| "block".to_string());
 
-    let config_time = config::toml_parser::get_config()
+    let config_content = config::toml_parser::get_config()
         .lock()
         .ok()
-        .and_then(|c| c.get_game())
-        .and_then(|g| g.time);
-    let time = cli.time.or(config_time).unwrap_or(30);
+        .and_then(|c| c.get_content())
+        .unwrap_or_default();
 
-    let mode_tokens: Vec<String> = if !cli.mode.is_empty() {
-        cli.mode.clone()
-    } else {
+    let code_mode = match cli.mode {
+        Some(GameMode::Text) => false,
+        Some(GameMode::Code) => true,
+        None => config_content == "code",
+    };
+
+    if code_mode && !cli.modifiers.is_empty() {
+        bail!("`-x/--modifiers` only applies to text mode, not code.");
+    }
+
+    let (word_language, code_language) = resolve_languages(&cli, code_mode)?;
+
+    let mode_tokens: Vec<String> = if cli.modifiers.is_empty() {
         config::mode_settings::ModeSettings::new()
             .default_modes
             .iter()
             .map(|m| m.token().to_string())
             .collect()
+    } else {
+        cli.modifiers.iter().map(|m| m.token().to_string()).collect()
     };
 
-    Mode::from_str(mode_tokens.iter().map(|s| s.as_str()).collect())
-        .context("Failed to parse mode")?;
+    let time = cli
+        .time
+        .or_else(|| {
+            config::toml_parser::get_config()
+                .lock()
+                .ok()
+                .and_then(|c| c.get_game())
+                .and_then(|g| g.time)
+        })
+        .unwrap_or(30);
 
-    let (code_mode, code_language) = match &cli.code {
-        Some(lang) if !lang.is_empty() => (true, lang.clone()),
-        Some(_) => (true, "any".to_string()),
-        None => {
-            let config = config::toml_parser::get_config();
-            let guard = config.lock().ok();
-            let content = guard
-                .as_ref()
-                .and_then(|c| c.get_content())
-                .unwrap_or_default();
-            let code_language = guard
-                .as_ref()
-                .and_then(|c| c.get_code_language())
-                .unwrap_or_else(|| "any".to_string());
-            (content == "code", code_language)
-        }
-    };
-
-    let direct = cli.time.is_some() || !cli.mode.is_empty() || cli.code.is_some();
+    let direct = cli.mode.is_some()
+        || cli.time.is_some()
+        || !cli.modifiers.is_empty()
+        || cli.language.is_some();
 
     app::run(
         theme,
         cursor_style,
-        language,
+        word_language,
         mode_tokens,
         time,
         code_mode,
         code_language,
         direct,
     )
+}
+
+fn resolve_languages(cli: &Cli, code_mode: bool) -> Result<(String, String)> {
+    let config_word = config::language::Language::new().lang;
+    let config_code = config::toml_parser::get_config()
+        .lock()
+        .ok()
+        .and_then(|c| c.get_code_language())
+        .unwrap_or_else(|| "any".to_string());
+
+    if code_mode {
+        let code_language = match &cli.language {
+            Some(lang) => {
+                let mut valid = code_provider::available_languages();
+                valid.push("any".to_string());
+                if !valid.contains(lang) {
+                    bail!(
+                        "Unknown code language '{lang}'. Available: {}.",
+                        valid.join(", ")
+                    );
+                }
+                lang.clone()
+            }
+            None => config_code,
+        };
+        Ok((config_word, code_language))
+    } else {
+        let word_language = match &cli.language {
+            Some(lang) => {
+                let valid = word_provider::supported_languages();
+                if !valid.contains(lang) {
+                    bail!(
+                        "Unknown language '{lang}'. Available: {}.",
+                        valid.join(", ")
+                    );
+                }
+                lang.clone()
+            }
+            None => config_word,
+        };
+        Ok((word_language, config_code))
+    }
 }
