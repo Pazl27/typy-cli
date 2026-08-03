@@ -1,0 +1,10 @@
+pub const THEME: &str = "theme";
+pub const CURSOR: &str = "cursor";
+pub const CONTENT: &str = "content";
+pub const CODE_LANGUAGE: &str = "code_language";
+pub const LANGUAGE: &str = "language";
+pub const LANG: &str = "lang";
+pub const MODES: &str = "modes";
+pub const DEFAULT_MODE: &str = "default_mode";
+pub const GAME: &str = "game";
+pub const TIME: &str = "time";

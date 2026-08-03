@@ -1,0 +1,148 @@
+use anyhow::Result;
+use rand::Rng;
+use std::str::FromStr;
+
+use crate::persistence::config::mode_settings::ModeSettings;
+
+pub use crate::domain::ModeType;
+
+#[derive(Debug)]
+pub struct Mode {
+    modes: Vec<ModeType>,
+    pub duration: u64,
+    settings: ModeSettings,
+}
+
+impl Mode {
+    pub fn from_str(mode_strs: Vec<&str>) -> Result<Self> {
+        let mut modes = Vec::new();
+        let settings = ModeSettings::new();
+
+        for mode_str in mode_strs {
+            match ModeType::from_str(mode_str) {
+                Ok(mode) => modes.push(mode),
+                Err(_) => return Err(anyhow::anyhow!("Invalid mode: {}", mode_str)),
+            }
+        }
+
+        modes.is_empty().then(|| {
+            settings.default_modes.iter().for_each(|m| {
+                modes.push(*m);
+            });
+        });
+
+        modes.contains(&ModeType::Normal).then(|| {
+            modes.clear();
+            modes.push(ModeType::Normal);
+        });
+
+        Ok(Mode {
+            modes,
+            duration: 0,
+            settings,
+        })
+    }
+
+    pub fn add_duration(mut self, duration: u64) -> Self {
+        self.duration = duration;
+        self
+    }
+
+    pub fn transform(&self, list: &mut [Vec<String>]) {
+        let mut rng = rand::rng();
+        let punctuations = [".", ",", "!", "?", ";", ":", "-"];
+
+        for mode in &self.modes {
+            match mode {
+                ModeType::Uppercase => {
+                    for sublist in list.iter_mut() {
+                        for item in sublist.iter_mut() {
+                            let mut new_item = String::new();
+                            for c in item.chars() {
+                                if rng.random_bool(self.settings.uppercase_chance.into()) {
+                                    new_item.push(c.to_uppercase().next().unwrap());
+                                } else {
+                                    new_item.push(c);
+                                }
+                            }
+                            *item = new_item;
+                        }
+                    }
+                }
+                ModeType::Punctuation => {
+                    for sublist in list.iter_mut() {
+                        let len = sublist.len();
+                        if len > 1 {
+                            for item in sublist.iter_mut().take(len - 1) {
+                                if rng.random_bool(self.settings.punctuation_chance.into()) {
+                                    let punctuation =
+                                        punctuations[rng.random_range(0..punctuations.len())];
+                                    item.push_str(punctuation);
+                                }
+                            }
+                        }
+                    }
+                }
+                ModeType::Numbers => {
+                    for sublist in list.iter_mut() {
+                        for item in sublist.iter_mut() {
+                            if rng.random_bool(self.settings.numbers_chance.into()) {
+                                let n: u32 = rng.random_range(0..10000);
+                                *item = n.to_string();
+                            }
+                        }
+                    }
+                }
+                ModeType::Normal => {}
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod mode_tests {
+    use super::*;
+
+    #[test]
+    fn test_from_str_valid_mode() {
+        let mode = Mode::from_str(vec!["normal", "uppercase", "punctuation"]).unwrap();
+        assert_eq!(mode.modes, vec![ModeType::Normal]);
+    }
+
+    #[test]
+    fn test_from_str_valid_modes() {
+        let mode = Mode::from_str(vec!["uppercase", "punctuation"]).unwrap();
+        assert_eq!(mode.modes, vec![ModeType::Uppercase, ModeType::Punctuation]);
+    }
+
+    #[test]
+    fn test_from_str_invalid_mode() {
+        let mode = Mode::from_str(vec!["invalid"]);
+        assert!(mode.is_err());
+    }
+
+    #[test]
+    fn test_add_duration() {
+        let mode = Mode::from_str(vec!["normal"]).unwrap().add_duration(10);
+        assert_eq!(mode.modes, vec![ModeType::Normal]);
+        assert_eq!(mode.duration, 10);
+    }
+
+    #[test]
+    fn test_transform_uppercase() {
+        let mode = Mode::from_str(vec!["uppercase"]).unwrap();
+        let mut list = vec![vec!["hello".to_string(), "world".to_string()]];
+        mode.transform(&mut list);
+        assert_eq!(list.len(), 1);
+        assert_eq!(list[0].len(), 2);
+    }
+
+    #[test]
+    fn test_transform_punctuation() {
+        let mode = Mode::from_str(vec!["punctuation"]).unwrap();
+        let mut list = vec![vec!["hello".to_string(), "world".to_string()]];
+        mode.transform(&mut list);
+        assert_eq!(list.len(), 1);
+        assert_eq!(list[0].len(), 2);
+    }
+}

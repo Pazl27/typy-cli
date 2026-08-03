@@ -2,14 +2,16 @@ mod parser;
 
 use anyhow::{bail, Result};
 use clap::Parser;
-use parser::{Cli, GameMode};
+use parser::Cli;
 
 use crate::app;
-use crate::code_provider;
-use crate::config;
-use crate::scores::progress::display;
-use crate::theme;
-use crate::word_provider;
+use crate::content::code;
+use crate::persistence::config;
+use crate::persistence::config::constants::defaults;
+use crate::domain::{CursorStyle, GameMode};
+use crate::view::progress as display;
+use crate::view::theme;
+use crate::content::words;
 
 pub fn run() -> Result<()> {
     let cli = Cli::parse();
@@ -36,7 +38,7 @@ pub fn run() -> Result<()> {
         .lock()
         .ok()
         .and_then(|c| c.get_cursor())
-        .unwrap_or_else(|| "block".to_string());
+        .unwrap_or_else(|| CursorStyle::Block.token().to_string());
 
     let config_content = config::toml_parser::get_config()
         .lock()
@@ -52,7 +54,7 @@ pub fn run() -> Result<()> {
     let code_mode = match cli.mode {
         Some(GameMode::Text) => false,
         Some(GameMode::Code) => true,
-        None => !direct && config_content == "code",
+        None => !direct && GameMode::is_code_content(&config_content),
     };
 
     if code_mode && !cli.modifiers.is_empty() {
@@ -83,7 +85,7 @@ pub fn run() -> Result<()> {
                 .and_then(|c| c.get_game())
                 .and_then(|g| g.time)
         })
-        .unwrap_or(30);
+        .unwrap_or(defaults::TIME);
 
     app::run(
         theme,
@@ -103,13 +105,13 @@ fn resolve_languages(cli: &Cli, code_mode: bool) -> Result<(String, String)> {
         .lock()
         .ok()
         .and_then(|c| c.get_code_language())
-        .unwrap_or_else(|| "any".to_string());
+        .unwrap_or_else(|| defaults::CODE_LANGUAGE.to_string());
 
     if code_mode {
         let code_language = match &cli.language {
             Some(lang) => {
-                let mut valid = code_provider::available_languages();
-                valid.push("any".to_string());
+                let mut valid = code::available_languages();
+                valid.push(defaults::CODE_LANGUAGE.to_string());
                 if !valid.contains(lang) {
                     bail!(
                         "Unknown code language '{lang}'. Available: {}.",
@@ -124,7 +126,7 @@ fn resolve_languages(cli: &Cli, code_mode: bool) -> Result<(String, String)> {
     } else {
         let word_language = match &cli.language {
             Some(lang) => {
-                let valid = word_provider::available_languages();
+                let valid = words::available_languages();
                 if !valid.contains(lang) {
                     bail!(
                         "Unknown language '{lang}'. Available: {}. \

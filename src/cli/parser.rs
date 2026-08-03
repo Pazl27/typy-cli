@@ -1,10 +1,6 @@
 use clap::{Parser, ValueEnum};
 
-#[derive(Copy, Clone, PartialEq, Eq, ValueEnum)]
-pub(crate) enum GameMode {
-    Text,
-    Code,
-}
+pub(crate) use crate::domain::GameMode;
 
 #[derive(Copy, Clone, PartialEq, Eq, ValueEnum)]
 pub(crate) enum Modifier {
@@ -14,12 +10,16 @@ pub(crate) enum Modifier {
 }
 
 impl Modifier {
-    pub(crate) fn token(self) -> &'static str {
+    pub(crate) fn mode_type(self) -> crate::domain::ModeType {
         match self {
-            Modifier::Punctuation => "punctuation",
-            Modifier::Numbers => "numbers",
-            Modifier::Uppercase => "uppercase",
+            Modifier::Punctuation => crate::domain::ModeType::Punctuation,
+            Modifier::Numbers => crate::domain::ModeType::Numbers,
+            Modifier::Uppercase => crate::domain::ModeType::Uppercase,
         }
+    }
+
+    pub(crate) fn token(self) -> &'static str {
+        self.mode_type().token()
     }
 }
 
