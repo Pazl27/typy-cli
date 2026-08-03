@@ -4,12 +4,14 @@ use anyhow::{Context, Result};
 
 use crate::code_provider;
 use crate::scores::Stats;
+use crate::syntax::{self, Token};
 
 pub struct CodeSession {
     pub language: String,
     pub path: String,
     pub url: String,
     pub target: Vec<char>,
+    pub highlights: Vec<Token>,
     pub typeable: Vec<bool>,
     pub typed: Vec<Option<char>>,
     pub cursor: usize,
@@ -23,6 +25,7 @@ impl CodeSession {
     pub fn new(selector: &str) -> Result<Self> {
         let snippet = code_provider::get_snippet(selector).context("Failed to get code snippet")?;
         let target: Vec<char> = snippet.content.chars().collect();
+        let highlights = syntax::highlight(&snippet.content, &snippet.language);
         let typeable = compute_typeable(&target);
         let len = target.len();
 
@@ -31,6 +34,7 @@ impl CodeSession {
             path: snippet.path,
             url: snippet.url,
             target,
+            highlights,
             typeable,
             typed: vec![None; len],
             cursor: 0,

@@ -5,6 +5,7 @@ mod config;
 mod mode;
 mod scores;
 mod settings;
+mod syntax;
 mod theme;
 mod tui;
 mod typing;

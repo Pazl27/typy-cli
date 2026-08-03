@@ -70,12 +70,6 @@ pub fn run() -> Result<()> {
     } else {
         cli.modifiers
             .iter()
-            
-            
-            .iter()
-            
-            
-            .iter()
             .map(|m| m.token().to_string())
             .collect()
     };

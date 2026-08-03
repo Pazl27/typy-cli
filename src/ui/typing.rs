@@ -6,7 +6,7 @@ use ratatui::Frame;
 
 use crate::app::{App, Game};
 use crate::theme::Theme;
-use crate::typing::highlight::{self};
+use crate::syntax;
 use crate::typing::{CodeSession, TypingSession, Word};
 
 pub fn render(frame: &mut Frame, app: &App) {
@@ -178,12 +178,11 @@ fn render_code(frame: &mut Frame, area: Rect, session: &CodeSession, theme: &The
     let mut rendered: Vec<Line> = Vec::new();
     for (k, chars) in lines_chars.iter().enumerate() {
         let start = line_starts[k];
-        let tokens = highlight::tokens_for_line(chars, &session.language);
         let mut spans: Vec<Span> = Vec::new();
         for (j, &ch) in chars.iter().enumerate() {
             let idx = start + j;
-            let syntax = highlight::token_color(tokens[j], theme);
-            spans.push(Span::styled(ch.to_string(), code_char_style(session, idx, syntax, theme)));
+            let color = syntax::token_color(session.highlights[idx], theme);
+            spans.push(Span::styled(ch.to_string(), code_char_style(session, idx, color, theme)));
         }
         rendered.push(Line::from(spans));
     }
