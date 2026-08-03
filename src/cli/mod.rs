@@ -44,10 +44,15 @@ pub fn run() -> Result<()> {
         .and_then(|c| c.get_content())
         .unwrap_or_default();
 
+    let direct = cli.mode.is_some()
+        || cli.time.is_some()
+        || !cli.modifiers.is_empty()
+        || cli.language.is_some();
+
     let code_mode = match cli.mode {
         Some(GameMode::Text) => false,
         Some(GameMode::Code) => true,
-        None => config_content == "code",
+        None => !direct && config_content == "code",
     };
 
     if code_mode && !cli.modifiers.is_empty() {
@@ -63,7 +68,16 @@ pub fn run() -> Result<()> {
             .map(|m| m.token().to_string())
             .collect()
     } else {
-        cli.modifiers.iter().map(|m| m.token().to_string()).collect()
+        cli.modifiers
+            .iter()
+            
+            
+            .iter()
+            
+            
+            .iter()
+            .map(|m| m.token().to_string())
+            .collect()
     };
 
     let time = cli
@@ -76,11 +90,6 @@ pub fn run() -> Result<()> {
                 .and_then(|g| g.time)
         })
         .unwrap_or(30);
-
-    let direct = cli.mode.is_some()
-        || cli.time.is_some()
-        || !cli.modifiers.is_empty()
-        || cli.language.is_some();
 
     app::run(
         theme,
@@ -121,10 +130,11 @@ fn resolve_languages(cli: &Cli, code_mode: bool) -> Result<(String, String)> {
     } else {
         let word_language = match &cli.language {
             Some(lang) => {
-                let valid = word_provider::supported_languages();
+                let valid = word_provider::available_languages();
                 if !valid.contains(lang) {
                     bail!(
-                        "Unknown language '{lang}'. Available: {}.",
+                        "Unknown language '{lang}'. Available: {}. \
+                         Add your own by placing `<name>.txt` in ~/.local/share/typy/.",
                         valid.join(", ")
                     );
                 }
