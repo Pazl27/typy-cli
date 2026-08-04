@@ -1,0 +1,695 @@
+[
+ {
+  "language": "javascript",
+  "repo": "lodash/lodash",
+  "path": "lib/main/build-site.js",
+  "url": "https://github.com/lodash/lodash/blob/main/lib/main/build-site.js#L75-L84",
+  "content": "function removeMarkyAttributes($) {\n  $('[id^=\"user-content-\"]')\n    .attr('class', null)\n    .attr('id', null);\n  $(':header:not(h3) > a').each(function() {\n    const $a = $(this);\n    $a.replaceWith($a.html());\n  });\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "client/v3/compare.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/client/v3/compare.go#L48-L53",
+  "content": "func (cmp *Cmp) Clone() Cmp {\n    if cmp.c == nil {\n        return Cmp{}\n    }\n    return Cmp{c: cloneCompare(cmp.c)}\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "client/v3/retry.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/client/v3/retry.go#L136-L140",
+  "content": "func RetryLeaseClient(c *Client) pb.LeaseClient {\n    return &retryLeaseClient{\n        lc: pb.NewLeaseClient(c.conn),\n    }\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "pkg/flags/uint32.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/pkg/flags/uint32.go#L33-L37",
+  "content": "func (i *uint32Value) Set(s string) error {\n    v, err := strconv.ParseUint(s, 0, 32)\n    *i = uint32Value(v)\n    return err\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "client/v3/compare.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/client/v3/compare.go#L180-L185",
+  "content": "func mustInt64orLeaseID(val any) int64 {\n    if v, ok := val.(LeaseID); ok {\n        return int64(v)\n    }\n    return mustInt64(val)\n}"
+ },
+ {
+  "language": "rust",
+  "repo": "rust-lang/cargo",
+  "path": "crates/build-rs/src/input.rs",
+  "url": "https://github.com/rust-lang/cargo/blob/master/crates/build-rs/src/input.rs#L121-L128",
+  "content": "pub fn cargo_feature(name: &str) -> bool {\n    if !is_feature_name(name) {\n        panic!(\"invalid feature name {name:?}\")\n    }\n    let name = name.to_uppercase().replace('-', \"_\");\n    let key = format!(\"CARGO_FEATURE_{name}\");\n    ENV.is_present(&key)\n}"
+ },
+ {
+  "language": "python",
+  "repo": "tiangolo/fastapi",
+  "path": "fastapi/_compat/v2.py",
+  "url": "https://github.com/tiangolo/fastapi/blob/master/fastapi/_compat/v2.py#L349-L356",
+  "content": "def is_scalar_field(field: ModelField) -> bool:\n    from fastapi import params\n    return shared.field_annotation_is_scalar(\n        field.field_info.annotation\n    ) and not isinstance(field.field_info, params.Body)"
+ },
+ {
+  "language": "c",
+  "repo": "ggerganov/llama.cpp",
+  "path": "ggml/src/ggml-quants.c",
+  "url": "https://github.com/ggerganov/llama.cpp/blob/master/ggml/src/ggml-quants.c#L621-L626",
+  "content": "static inline int nearest_int(float fval) {\n    assert(fabsf(fval) <= 4194303.f);\n    float val = fval + 12582912.f;\n    int i; memcpy(&i, &val, sizeof(int));\n    return (i & 0x007fffff) - 0x00400000;\n}"
+ },
+ {
+  "language": "cpp",
+  "repo": "ggerganov/llama.cpp",
+  "path": "ggml/src/ggml.cpp",
+  "url": "https://github.com/ggerganov/llama.cpp/blob/master/ggml/src/ggml.cpp#L8-L14",
+  "content": "GGML_NORETURN static void ggml_uncaught_exception() {\n    ggml_print_backtrace();\n    if (previous_terminate_handler) {\n        previous_terminate_handler();\n    }\n    abort();\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "client/v3/watch.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/client/v3/watch.go#L446-L454",
+  "content": "func (w *watchGRPCStream) close() (err error) {\n    w.cancel()\n    <-w.donec\n    select {\n    case err = <-w.errc:\n    default:\n    }\n    return ContextError(w.ctx, err)\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "server/etcdserver/api/v3discovery/discovery.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/server/etcdserver/api/v3discovery/discovery.go#L503-L509",
+  "content": "func (cls *clusterInfo) getPeerURLs() []string {\n    var peerURLs []string\n    for _, peer := range cls.members {\n        peerURLs = append(peerURLs, peer.peerURLsMap)\n    }\n    return peerURLs\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "server/etcdserver/txn/txn.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/server/etcdserver/txn/txn.go#L230-L239",
+  "content": "func compareInt64(a, b int64) int {\n    switch {\n    case a < b:\n        return -1\n    case a > b:\n        return 1\n    default:\n        return 0\n    }\n}"
+ },
+ {
+  "language": "python",
+  "repo": "tiangolo/fastapi",
+  "path": "fastapi/encoders.py",
+  "url": "https://github.com/tiangolo/fastapi/blob/master/fastapi/encoders.py#L59-L83",
+  "content": "def decimal_encoder(dec_value: Decimal) -> int | float:\n    exponent = dec_value.as_tuple().exponent\n    if isinstance(exponent, int) and exponent >= 0:\n        return int(dec_value)\n    else:\n        return float(dec_value)"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "pkg/flags/selective_string.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/pkg/flags/selective_string.go#L46-L53",
+  "content": "func (ss *SelectiveStringValue) Valids() []string {\n    s := make([]string, 0, len(ss.valids))\n    for k := range ss.valids {\n        s = append(s, k)\n    }\n    sort.Strings(s)\n    return s\n}"
+ },
+ {
+  "language": "c",
+  "repo": "ggerganov/llama.cpp",
+  "path": "ggml/src/ggml.c",
+  "url": "https://github.com/ggerganov/llama.cpp/blob/master/ggml/src/ggml.c#L1357-L1361",
+  "content": "bool ggml_is_quantized(enum ggml_type type) {\n    assert(type >= 0);\n    assert(type < GGML_TYPE_COUNT);\n    return type_traits[type].is_quantized;\n}"
+ },
+ {
+  "language": "python",
+  "repo": "pallets/flask",
+  "path": "src/flask/logging.py",
+  "url": "https://github.com/pallets/flask/blob/main/src/flask/logging.py#L58-L80",
+  "content": "def create_logger(app: App) -> logging.Logger:\n    logger = logging.getLogger(app.name)\n    if app.debug and not logger.level:\n        logger.setLevel(logging.DEBUG)\n    if not has_level_handler(logger):\n        logger.addHandler(default_handler)\n    return logger"
+ },
+ {
+  "language": "c",
+  "repo": "ggerganov/llama.cpp",
+  "path": "ggml/src/ggml-hexagon/htp/act-ops.c",
+  "url": "https://github.com/ggerganov/llama.cpp/blob/master/ggml/src/ggml-hexagon/htp/act-ops.c#L769-L777",
+  "content": "int op_activations(struct htp_ops_context * octx) {\n    switch (octx->src[0]->type) {\n        case HTP_TYPE_F32:\n            return execute_op_activations_f32(octx);\n        default:\n            return HTP_STATUS_NO_SUPPORT;\n    }\n}"
+ },
+ {
+  "language": "javascript",
+  "repo": "lodash/lodash",
+  "path": "lib/main/build-dist.js",
+  "url": "https://github.com/lodash/lodash/blob/main/lib/main/build-dist.js#L24-L29",
+  "content": "function build() {\n  async.series([\n    file.copy(baseLodash, distLodash),\n    file.min(distLodash)\n  ], util.pitch);\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "client/v3/retry.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/client/v3/retry.go#L101-L105",
+  "content": "func RetryKVClient(c *Client) pb.KVClient {\n    return &retryKVClient{\n        kc: pb.NewKVClient(c.conn),\n    }\n}"
+ },
+ {
+  "language": "python",
+  "repo": "pallets/flask",
+  "path": "src/flask/helpers.py",
+  "url": "https://github.com/pallets/flask/blob/main/src/flask/helpers.py#L36-L50",
+  "content": "def get_load_dotenv(default: bool = True) -> bool:\n    val = os.environ.get(\"FLASK_SKIP_DOTENV\")\n    if not val:\n        return default\n    return val.lower() in (\"0\", \"false\", \"no\")"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "client/v3/watch.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/client/v3/watch.go#L1011-L1020",
+  "content": "func (w *watchGRPCStream) joinSubstreams() {\n    for _, ws := range w.substreams {\n        <-ws.donec\n    }\n    for _, ws := range w.resuming {\n        if ws != nil {\n            <-ws.donec\n        }\n    }\n}"
+ },
+ {
+  "language": "c",
+  "repo": "ggerganov/llama.cpp",
+  "path": "ggml/src/ggml.c",
+  "url": "https://github.com/ggerganov/llama.cpp/blob/master/ggml/src/ggml.c#L1652-L1660",
+  "content": "void ggml_reset(struct ggml_context * ctx) {\n    if (ctx == NULL) {\n        return;\n    }\n    ctx->n_objects     = 0;\n    ctx->objects_begin = NULL;\n    ctx->objects_end   = NULL;\n}"
+ },
+ {
+  "language": "c",
+  "repo": "ggerganov/llama.cpp",
+  "path": "ggml/src/ggml.c",
+  "url": "https://github.com/ggerganov/llama.cpp/blob/master/ggml/src/ggml.c#L1326-L1330",
+  "content": "int64_t ggml_blck_size(enum ggml_type type) {\n    assert(type >= 0);\n    assert(type < GGML_TYPE_COUNT);\n    return type_traits[type].blck_size;\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "server/proxy/grpcproxy/watch_ranges.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/server/proxy/grpcproxy/watch_ranges.go#L36-L47",
+  "content": "func (wrs *watchRanges) add(w *watcher) {\n    wrs.mu.Lock()\n    defer wrs.mu.Unlock()\n    if wbs := wrs.bcasts[w.wr]; wbs != nil {\n        wbs.add(w)\n        return\n    }\n    wbs := newWatchBroadcasts(wrs.wp)\n    wrs.bcasts[w.wr] = wbs\n    wbs.add(w)\n}"
+ },
+ {
+  "language": "c",
+  "repo": "ggerganov/llama.cpp",
+  "path": "ggml/src/ggml-et/et-kernels/src/rope_f32.c",
+  "url": "https://github.com/ggerganov/llama.cpp/blob/master/ggml/src/ggml-et/et-kernels/src/rope_f32.c#L145-L155",
+  "content": "static inline uint64_t rope_ps_enter_fullmask(void) {\n    uint64_t old_mask;\n    __asm__ volatile(\n        \"mova.x.m %0           \\n\\t\"\n        \"li       t0, -1       \\n\\t\"\n        \"mova.m.x t0           \\n\\t\"\n        : \"=r\"(old_mask)\n        :\n        : \"t0\", \"memory\");\n    return old_mask;\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "cache/predicate.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/cache/predicate.go#L44-L52",
+  "content": "func KeyPredForRange(start, end []byte) KeyPredicate {\n    if len(end) == 0 {\n        return ExactKey(start)\n    }\n    if len(end) == 1 && end[0] == 0 {\n        return FromKey(start)\n    }\n    return Range(start, end)\n}"
+ },
+ {
+  "language": "c",
+  "repo": "ggerganov/llama.cpp",
+  "path": "ggml/src/ggml-hexagon/htp/main.c",
+  "url": "https://github.com/ggerganov/llama.cpp/blob/master/ggml/src/ggml-hexagon/htp/main.c#L294-L300",
+  "content": "static void vtcm_free(struct htp_context * ctx) {\n    if (ctx->vtcm_rctx) {\n        HAP_compute_res_release(ctx->vtcm_rctx);\n        ctx->vtcm_base = 0;\n        ctx->vtcm_rctx = 0;\n    }\n}"
+ },
+ {
+  "language": "c",
+  "repo": "ggerganov/llama.cpp",
+  "path": "ggml/src/ggml.c",
+  "url": "https://github.com/ggerganov/llama.cpp/blob/master/ggml/src/ggml.c#L1332-L1336",
+  "content": "size_t ggml_type_size(enum ggml_type type) {\n    assert(type >= 0);\n    assert(type < GGML_TYPE_COUNT);\n    return type_traits[type].type_size;\n}"
+ },
+ {
+  "language": "python",
+  "repo": "tiangolo/fastapi",
+  "path": "scripts/notify_translations.py",
+  "url": "https://github.com/tiangolo/fastapi/blob/master/scripts/notify_translations.py#L198-L207",
+  "content": "def get_graphql_response(\n    *,\n    settings: Settings,\n    query: str,\n    after: str | None = None,\n    category_id: str | None = None,\n    discussion_number: int | None = None,\n    discussion_id: str | None = None,\n    comment_id: str | None = None,\n    body: str | None = None,"
+ },
+ {
+  "language": "javascript",
+  "repo": "lodash/lodash",
+  "path": "dist/lodash.fp.js",
+  "url": "https://github.com/lodash/lodash/blob/main/dist/lodash.fp.js#L124-L132",
+  "content": "    function cloneArray(array) {\n      var length = array ? array.length : 0,\n          result = Array(length);\n      while (length--) {\n        result[length] = array[length];\n      }\n      return result;\n    }"
+ },
+ {
+  "language": "c",
+  "repo": "ggerganov/llama.cpp",
+  "path": "ggml/src/ggml.c",
+  "url": "https://github.com/ggerganov/llama.cpp/blob/master/ggml/src/ggml.c#L1351-L1355",
+  "content": "const char * ggml_type_name(enum ggml_type type) {\n    assert(type >= 0);\n    assert(type < GGML_TYPE_COUNT);\n    return type_traits[type].type_name;\n}"
+ },
+ {
+  "language": "c",
+  "repo": "ggerganov/llama.cpp",
+  "path": "ggml/src/ggml-hexagon/htp/hmx-queue.c",
+  "url": "https://github.com/ggerganov/llama.cpp/blob/master/ggml/src/ggml-hexagon/htp/hmx-queue.c#L17-L23",
+  "content": "static inline void hmx_lock(hmx_queue_t q)\n{\n    if (!q->hmx_locked) {\n        HAP_compute_res_hmx_lock(q->hap_rctx);\n        q->hmx_locked = true;\n    }\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "server/storage/mvcc/watcher.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/server/storage/mvcc/watcher.go#L178-L188",
+  "content": "func (ws *watchStream) Close() {\n    ws.mu.Lock()\n    defer ws.mu.Unlock()\n    for _, cancel := range ws.cancels {\n        cancel()\n    }\n    ws.closed = true\n    close(ws.ch)\n    watchStreamGauge.Dec()\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "pkg/flags/uint32.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/pkg/flags/uint32.go#L25-L29",
+  "content": "func NewUint32Value(v uint32) *uint32Value {\n    val := new(uint32Value)\n    *val = uint32Value(v)\n    return val\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "client/v3/watch.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/client/v3/watch.go#L713-L721",
+  "content": "func (w *watchGRPCStream) nextResume() *watcherStream {\n    for len(w.resuming) != 0 {\n        if w.resuming[0] != nil {\n            return w.resuming[0]\n        }\n        w.resuming = w.resuming[1:len(w.resuming)]\n    }\n    return nil\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "client/v3/compare.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/client/v3/compare.go#L168-L176",
+  "content": "func mustInt64(val any) int64 {\n    if v, ok := val.(int64); ok {\n        return v\n    }\n    if v, ok := val.(int); ok {\n        return int64(v)\n    }\n    panic(\"bad value\")\n}"
+ },
+ {
+  "language": "c",
+  "repo": "ggerganov/llama.cpp",
+  "path": "ggml/src/ggml.c",
+  "url": "https://github.com/ggerganov/llama.cpp/blob/master/ggml/src/ggml.c#L7860-L7863",
+  "content": "void ggml_set_param(struct ggml_tensor * tensor) {\n    GGML_ASSERT(tensor->op == GGML_OP_NONE);\n    tensor->flags |= GGML_TENSOR_FLAG_PARAM;\n}"
+ },
+ {
+  "language": "javascript",
+  "repo": "lodash/lodash",
+  "path": "dist/lodash.fp.js",
+  "url": "https://github.com/lodash/lodash/blob/main/dist/lodash.fp.js#L141-L145",
+  "content": "    function createCloner(func) {\n      return function(object) {\n        return func({}, object);\n      };\n    }"
+ },
+ {
+  "language": "javascript",
+  "repo": "lodash/lodash",
+  "path": "lib/fp/build-dist.js",
+  "url": "https://github.com/lodash/lodash/blob/main/lib/fp/build-dist.js#L48-L54",
+  "content": "function build() {\n  async.series([\n    _.partial(webpack, mappingConfig),\n    _.partial(webpack, fpConfig),\n    file.min(path.join(distPath, filename))\n  ], util.pitch);\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "server/proxy/grpcproxy/watch_ranges.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/server/proxy/grpcproxy/watch_ranges.go#L62-L69",
+  "content": "func (wrs *watchRanges) stop() {\n    wrs.mu.Lock()\n    defer wrs.mu.Unlock()\n    for _, wb := range wrs.bcasts {\n        wb.stop()\n    }\n    wrs.bcasts = nil\n}"
+ },
+ {
+  "language": "rust",
+  "repo": "rust-lang/cargo",
+  "path": "crates/build-rs/src/input.rs",
+  "url": "https://github.com/rust-lang/cargo/blob/master/crates/build-rs/src/input.rs#L145-L152",
+  "content": "fn cargo_cfg_var(cfg: &str) -> String {\n    if !is_ascii_ident(cfg) {\n        panic!(\"invalid configuration option {cfg:?}\")\n    }\n    let cfg = cfg.to_uppercase().replace('-', \"_\");\n    let key = format!(\"CARGO_CFG_{cfg}\");\n    key\n}"
+ },
+ {
+  "language": "c",
+  "repo": "ggerganov/llama.cpp",
+  "path": "ggml/src/ggml-quants.c",
+  "url": "https://github.com/ggerganov/llama.cpp/blob/master/ggml/src/ggml-quants.c#L3691-L3695",
+  "content": "static inline int iq3_data_index(int grid_size) {\n    (void)grid_size;\n    GGML_ASSERT(grid_size == 256 || grid_size == 512);\n    return grid_size == 256 ? 0 : 1;\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "pkg/httputil/httputil.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/pkg/httputil/httputil.go#L40-L49",
+  "content": "func GetHostname(req *http.Request) string {\n    if req == nil {\n        return \"\"\n    }\n    h, _, err := net.SplitHostPort(req.Host)\n    if err != nil {\n        return req.Host\n    }\n    return h\n}"
+ },
+ {
+  "language": "python",
+  "repo": "pallets/flask",
+  "path": "src/flask/helpers.py",
+  "url": "https://github.com/pallets/flask/blob/main/src/flask/helpers.py#L151-L199",
+  "content": "def make_response(*args: t.Any) -> Response:\n    if not args:\n        return current_app.response_class()\n    if len(args) == 1:\n        args = args[0]\n    return current_app.make_response(args)"
+ },
+ {
+  "language": "javascript",
+  "repo": "lodash/lodash",
+  "path": "lib/fp/build-doc.js",
+  "url": "https://github.com/lodash/lodash/blob/main/lib/fp/build-doc.js#L30-L36",
+  "content": "function toArgOrder(indexes) {\n  const reordered = [];\n  _.each(indexes, (newIndex, index) => {\n    reordered[newIndex] = argNames[index];\n  });\n  return '`(' + reordered.join(', ') + ')`';\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "pkg/flags/selective_string.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/pkg/flags/selective_string.go#L95-L102",
+  "content": "func (ss *SelectiveStringsValue) Valids() []string {\n    s := make([]string, 0, len(ss.valids))\n    for k := range ss.valids {\n        s = append(s, k)\n    }\n    sort.Strings(s)\n    return s\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "pkg/httputil/httputil.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/pkg/httputil/httputil.go#L32-L35",
+  "content": "func GracefulClose(resp *http.Response) {\n    io.Copy(io.Discard, resp.Body)\n    resp.Body.Close()\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "client/v3/compare.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/client/v3/compare.go#L187-L192",
+  "content": "func cloneCompare(c *pb.Compare) *pb.Compare {\n    if c == nil {\n        return nil\n    }\n    return proto.Clone(c).(*pb.Compare)\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "server/storage/mvcc/watcher.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/server/storage/mvcc/watcher.go#L206-L210",
+  "content": "func (ws *watchStream) RequestProgressAll() bool {\n    ws.mu.Lock()\n    defer ws.mu.Unlock()\n    return ws.watchable.progressAll(ws.watchers)\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "server/etcdserver/api/v3discovery/discovery.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/server/etcdserver/api/v3discovery/discovery.go#L428-L433",
+  "content": "func (d *discovery) close() error {\n    if d.c != nil {\n        return d.c.Close()\n    }\n    return nil\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "client/v3/retry.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/client/v3/retry.go#L167-L171",
+  "content": "func RetryClusterClient(c *Client) pb.ClusterClient {\n    return &retryClusterClient{\n        cc: pb.NewClusterClient(c.conn),\n    }\n}"
+ },
+ {
+  "language": "c",
+  "repo": "ggerganov/llama.cpp",
+  "path": "ggml/src/ggml.c",
+  "url": "https://github.com/ggerganov/llama.cpp/blob/master/ggml/src/ggml.c#L6531-L6535",
+  "content": "static void ggml_hash_map_free(struct hash_map * map) {\n    ggml_hash_set_free(&map->set);\n    GGML_FREE(map->vals);\n    GGML_FREE(map);\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "client/v3/compare.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/client/v3/compare.go#L124-L129",
+  "content": "func (cmp *Cmp) KeyBytes() []byte {\n    if cmp == nil {\n        return nil\n    }\n    return cmp.c.GetKey()\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "server/etcdserver/api/v3rpc/health.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/server/etcdserver/api/v3rpc/health.go#L53-L58",
+  "content": "func (hc *healthNotifier) defragStarted() {\n    if !hc.stopGRPCServiceOnDefrag {\n        return\n    }\n    hc.stopServe(\"defrag is active\")\n}"
+ },
+ {
+  "language": "python",
+  "repo": "pallets/flask",
+  "path": "src/flask/json/__init__.py",
+  "url": "https://github.com/pallets/flask/blob/main/src/flask/json/__init__.py#L108-L137",
+  "content": "def load(fp: t.IO[t.AnyStr], **kwargs: t.Any) -> t.Any:\n    if current_app:\n        return current_app.json.load(fp, **kwargs)\n    return _json.load(fp, **kwargs)"
+ },
+ {
+  "language": "c",
+  "repo": "ggerganov/llama.cpp",
+  "path": "ggml/src/ggml-hexagon/htp/hmx-queue.c",
+  "url": "https://github.com/ggerganov/llama.cpp/blob/master/ggml/src/ggml-hexagon/htp/hmx-queue.c#L158-L170",
+  "content": "void hmx_queue_free(hmx_queue_t q) {\n    if (!q) {\n        return;\n    }\n    hmx_queue_flush(q);\n    hmx_queue_signal(q, HMX_QUEUE_KILL);\n    hmx_queue_flush(q);\n    int status;\n    qurt_thread_join(q->thread, &status);\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "server/etcdserver/api/v3discovery/discovery.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/server/etcdserver/api/v3discovery/discovery.go#L477-L485",
+  "content": "func (cls *clusterInfo) exist(mKey string) bool {\n    for _, m := range cls.members {\n        if mKey == m.peerRegKey {\n            return true\n        }\n    }\n    return false\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "client/v3/retry.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/client/v3/retry.go#L36-L45",
+  "content": "func (rp retryPolicy) String() string {\n    switch rp {\n    case repeatable:\n        return \"repeatable\"\n    case nonRepeatable:\n        return \"nonRepeatable\"\n    default:\n        return \"UNKNOWN\"\n    }\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "client/v3/retry.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/client/v3/retry.go#L241-L245",
+  "content": "func RetryAuthClient(c *Client) pb.AuthClient {\n    return &retryAuthClient{\n        ac: pb.NewAuthClient(c.conn),\n    }\n}"
+ },
+ {
+  "language": "javascript",
+  "repo": "lodash/lodash",
+  "path": "lib/main/build-modules.js",
+  "url": "https://github.com/lodash/lodash/blob/main/lib/main/build-modules.js#L27-L32",
+  "content": "function build(target) {\n  const actions = _.map(filePairs, pair =>\n    file.copy(pair[0], path.join(target, pair[1])));\n  async.series(actions, util.pitch);\n}"
+ },
+ {
+  "language": "rust",
+  "repo": "rust-lang/cargo",
+  "path": "src/compiler/unused_deps.rs",
+  "url": "https://github.com/rust-lang/cargo/blob/master/src/compiler/unused_deps.rs#L165-L172",
+  "content": "fn unit_desc(unit: &Unit) -> String {\n    format!(\n        \"{}/{}+{:?}\",\n        unit.target.name(),\n        unit.target.kind().description(),\n        unit.mode,\n    )\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "cache/predicate.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/cache/predicate.go#L37-L42",
+  "content": "func Range(start, end []byte) KeyPredicate {\n    return func(k []byte) bool {\n        return bytes.Compare(k, start) >= 0 &&\n            bytes.Compare(k, end) < 0\n    }\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "client/v3/compare.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/client/v3/compare.go#L160-L165",
+  "content": "func (cmp Cmp) WithPrefix() Cmp {\n    cmp = cmp.Clone()\n    cmp.ensureCompare()\n    cmp.c.RangeEnd = getPrefix(cmp.c.GetKey())\n    return cmp\n}"
+ },
+ {
+  "language": "javascript",
+  "repo": "lodash/lodash",
+  "path": "fp/_baseConvert.js",
+  "url": "https://github.com/lodash/lodash/blob/main/fp/_baseConvert.js#L31-L35",
+  "content": "function baseAry(func, n) {\n  return n == 2\n    ? function(a, b) { return func(a, b); }\n    : function(a) { return func(a); };\n}"
+ },
+ {
+  "language": "cpp",
+  "repo": "ggerganov/llama.cpp",
+  "path": "tools/mtmd/mtmd-helper.cpp",
+  "url": "https://github.com/ggerganov/llama.cpp/blob/master/tools/mtmd/mtmd-helper.cpp#L628-L634",
+  "content": "bool mtmd_helper_support_video(mtmd_context * ctx) {\n#ifdef MTMD_VIDEO\n    return mtmd_support_vision(ctx);\n#else\n    return false;\n#endif\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "server/storage/mvcc/watcher.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/server/storage/mvcc/watcher.go#L190-L194",
+  "content": "func (ws *watchStream) Rev() int64 {\n    ws.mu.Lock()\n    defer ws.mu.Unlock()\n    return ws.watchable.rev()\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "client/v3/watch.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/client/v3/watch.go#L456-L464",
+  "content": "func (w *watcher) closeStream(wgs *watchGRPCStream) {\n    w.mu.Lock()\n    close(wgs.donec)\n    wgs.cancel()\n    if w.streams != nil {\n        delete(w.streams, wgs.ctxKey)\n    }\n    w.mu.Unlock()\n}"
+ },
+ {
+  "language": "c",
+  "repo": "ggerganov/llama.cpp",
+  "path": "ggml/src/ggml.c",
+  "url": "https://github.com/ggerganov/llama.cpp/blob/master/ggml/src/ggml.c#L7865-L7869",
+  "content": "void ggml_set_loss(struct ggml_tensor * tensor) {\n    GGML_ASSERT(ggml_is_scalar(tensor));\n    GGML_ASSERT(tensor->type == GGML_TYPE_F32);\n    tensor->flags |= GGML_TENSOR_FLAG_LOSS;\n}"
+ },
+ {
+  "language": "rust",
+  "repo": "rust-lang/cargo",
+  "path": "crates/build-rs/src/input.rs",
+  "url": "https://github.com/rust-lang/cargo/blob/master/crates/build-rs/src/input.rs#L139-L142",
+  "content": "pub fn cargo_cfg(cfg: &str) -> Option<Vec<String>> {\n    let var = cargo_cfg_var(cfg);\n    ENV.get(&var).map(|v| to_strings(v, ','))\n}"
+ },
+ {
+  "language": "javascript",
+  "repo": "lodash/lodash",
+  "path": "lib/main/build-site.js",
+  "url": "https://github.com/lodash/lodash/blob/main/lib/main/build-site.js#L92-L95",
+  "content": "function renameLodashId($) {\n  $('#_').attr('id', 'lodash');\n  $('[href=\"#_\"]').attr('href', '#lodash');\n}"
+ },
+ {
+  "language": "c",
+  "repo": "ggerganov/llama.cpp",
+  "path": "ggml/src/ggml.c",
+  "url": "https://github.com/ggerganov/llama.cpp/blob/master/ggml/src/ggml.c#L1553-L1561",
+  "content": "bool ggml_is_empty(const struct ggml_tensor * tensor) {\n    for (int i = 0; i < GGML_MAX_DIMS; ++i) {\n        if (tensor->ne[i] == 0) {\n            return true;\n        }\n    }\n    return false;\n}"
+ },
+ {
+  "language": "rust",
+  "repo": "rust-lang/cargo",
+  "path": "src/util/mod.rs",
+  "url": "https://github.com/rust-lang/cargo/blob/master/src/util/mod.rs#L119-L129",
+  "content": "pub fn indented_lines(text: &str) -> String {\n    text.lines()\n        .map(|line| {\n            if line.is_empty() {\n                String::from(\"\\n\")\n            } else {\n                format!(\"  {}\\n\", line)\n            }\n        })\n        .collect()\n}"
+ },
+ {
+  "language": "rust",
+  "repo": "rust-lang/cargo",
+  "path": "src/ops/resolve.rs",
+  "url": "https://github.com/rust-lang/cargo/blob/master/src/ops/resolve.rs#L591-L597",
+  "content": "pub fn get_resolved_packages<'gctx>(\n    resolve: &Resolve,\n    registry: PackageRegistry<'gctx>,\n) -> CargoResult<PackageSet<'gctx>> {\n    let ids: Vec<PackageId> = resolve.iter().collect();\n    registry.get(&ids)\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "client/pkg/logutil/zap.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/client/pkg/logutil/zap.go#L80-L93",
+  "content": "func mergePaths(old []string) []string {\n    if len(old) == 0 {\n        return []string{}\n    }\n    if slices.Contains(old, \"/dev/null\") {\n        return []string{\"/dev/null\"}\n    }\n    dup := slices.Clone(old)\n    slices.Sort(dup)\n    return slices.Compact(dup)\n}"
+ },
+ {
+  "language": "c",
+  "repo": "ggerganov/llama.cpp",
+  "path": "ggml/src/ggml-hexagon/htp/dma-queue.c",
+  "url": "https://github.com/ggerganov/llama.cpp/blob/master/ggml/src/ggml-hexagon/htp/dma-queue.c#L9-L19",
+  "content": "static inline uint32_t pow2_ceil(uint32_t x) {\n    if (x <= 1) {\n        return 1;\n    }\n    int p = 2;\n    x--;\n    while (x >>= 1) {\n        p <<= 1;\n    }\n    return p;\n}"
+ },
+ {
+  "language": "javascript",
+  "repo": "lodash/lodash",
+  "path": "dist/lodash.fp.js",
+  "url": "https://github.com/lodash/lodash/blob/main/dist/lodash.fp.js#L111-L115",
+  "content": "    function baseAry(func, n) {\n      return n == 2\n        ? function(a, b) { return func(a, b); }\n        : function(a) { return func(a); };\n    }"
+ },
+ {
+  "language": "javascript",
+  "repo": "lodash/lodash",
+  "path": "dist/lodash.fp.js",
+  "url": "https://github.com/lodash/lodash/blob/main/dist/lodash.fp.js#L380-L384",
+  "content": "      function castCurry(name, func, n) {\n        return (forceCurry || (config.curry && n > 1))\n          ? curry(func, n)\n          : func;\n      }"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "client/v3/compare.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/client/v3/compare.go#L146-L149",
+  "content": "func (cmp *Cmp) WithValueBytes(v []byte) {\n    cmp.ensureCompare()\n    cmp.c.TargetUnion.(*pb.Compare_Value).Value = v\n}"
+ },
+ {
+  "language": "c",
+  "repo": "ggerganov/llama.cpp",
+  "path": "ggml/src/ggml-hexagon/htp/main.c",
+  "url": "https://github.com/ggerganov/llama.cpp/blob/master/ggml/src/ggml-hexagon/htp/main.c#L245-L251",
+  "content": "static void vtcm_release(struct htp_context * ctx) {\n    if (ctx->vtcm_valid) {\n        ctx->vtcm_valid         = false;\n        ctx->vtcm_needs_release = false;\n        HAP_compute_res_release_cached(ctx->vtcm_rctx);\n    }\n}"
+ },
+ {
+  "language": "c",
+  "repo": "ggerganov/llama.cpp",
+  "path": "ggml/src/ggml-hexagon/htp/cumsum-ops.c",
+  "url": "https://github.com/ggerganov/llama.cpp/blob/master/ggml/src/ggml-hexagon/htp/cumsum-ops.c#L256-L265",
+  "content": "int op_cumsum(struct htp_ops_context * octx) {\n    const struct htp_tensor * dst = octx->dst;\n    switch (dst->type) {\n        case HTP_TYPE_F32:\n            return op_cumsum_f32(octx);\n        default:\n            return HTP_STATUS_NO_SUPPORT;\n    }\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "server/proxy/grpcproxy/watch_ranges.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/server/proxy/grpcproxy/watch_ranges.go#L29-L34",
+  "content": "func newWatchRanges(wp *watchProxy) *watchRanges {\n    return &watchRanges{\n        wp:     wp,\n        bcasts: make(map[watchRange]*watchBroadcasts),\n    }\n}"
+ },
+ {
+  "language": "javascript",
+  "repo": "lodash/lodash",
+  "path": "fp/_baseConvert.js",
+  "url": "https://github.com/lodash/lodash/blob/main/fp/_baseConvert.js#L44-L52",
+  "content": "function cloneArray(array) {\n  var length = array ? array.length : 0,\n      result = Array(length);\n  while (length--) {\n    result[length] = array[length];\n  }\n  return result;\n}"
+ },
+ {
+  "language": "python",
+  "repo": "pallets/flask",
+  "path": "src/flask/json/__init__.py",
+  "url": "https://github.com/pallets/flask/blob/main/src/flask/json/__init__.py#L13-L46",
+  "content": "def dumps(obj: t.Any, **kwargs: t.Any) -> str:\n    if current_app:\n        return current_app.json.dumps(obj, **kwargs)\n    kwargs.setdefault(\"default\", _default)\n    return _json.dumps(obj, **kwargs)"
+ },
+ {
+  "language": "cpp",
+  "repo": "ggerganov/llama.cpp",
+  "path": "tools/export-lora/export-lora.cpp",
+  "url": "https://github.com/ggerganov/llama.cpp/blob/master/tools/export-lora/export-lora.cpp#L32-L37",
+  "content": "static void zeros(std::ofstream & file, size_t n) {\n    char zero = 0;\n    for (size_t i = 0; i < n; ++i) {\n        file.write(&zero, 1);\n    }\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "server/config/config.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/server/config/config.go#L306-L311",
+  "content": "func (c *ServerConfig) WALDir() string {\n    if c.DedicatedWALDir != \"\" {\n        return c.DedicatedWALDir\n    }\n    return datadir.ToWALDir(c.DataDir)\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "pkg/flags/selective_string.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/pkg/flags/selective_string.go#L32-L38",
+  "content": "func (ss *SelectiveStringValue) Set(s string) error {\n    if _, ok := ss.valids[s]; ok {\n        ss.v = s\n        return nil\n    }\n    return errors.New(\"invalid value\")\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "client/pkg/transport/limit_listen.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/client/pkg/transport/limit_listen.go#L58-L62",
+  "content": "func (l *limitListenerConn) Close() error {\n    err := l.Conn.Close()\n    l.releaseOnce.Do(l.release)\n    return err\n}"
+ },
+ {
+  "language": "c",
+  "repo": "ggerganov/llama.cpp",
+  "path": "ggml/src/ggml.c",
+  "url": "https://github.com/ggerganov/llama.cpp/blob/master/ggml/src/ggml.c#L7504-L7508",
+  "content": "void ggml_graph_clear(struct ggml_cgraph * cgraph) {\n    cgraph->n_leafs = 0;\n    cgraph->n_nodes = 0;\n    ggml_hash_set_reset(&cgraph->visited_hash_set);\n}"
+ },
+ {
+  "language": "python",
+  "repo": "tiangolo/fastapi",
+  "path": "scripts/doc_parsing_utils.py",
+  "url": "https://github.com/tiangolo/fastapi/blob/master/scripts/doc_parsing_utils.py#L475-L481",
+  "content": "def get_code_block_lang(line: str) -> str:\n    match = CODE_BLOCK_LANG_RE.match(line)\n    if match:\n        return match.group(1)\n    return \"\""
+ },
+ {
+  "language": "c",
+  "repo": "ggerganov/llama.cpp",
+  "path": "ggml/src/ggml.c",
+  "url": "https://github.com/ggerganov/llama.cpp/blob/master/ggml/src/ggml.c#L1417-L1424",
+  "content": "int ggml_n_dims(const struct ggml_tensor * tensor) {\n    for (int i = GGML_MAX_DIMS - 1; i >= 1; --i) {\n        if (tensor->ne[i] > 1) {\n            return i + 1;\n        }\n    }\n    return 1;\n}"
+ },
+ {
+  "language": "python",
+  "repo": "pallets/flask",
+  "path": "src/flask/json/__init__.py",
+  "url": "https://github.com/pallets/flask/blob/main/src/flask/json/__init__.py#L77-L107",
+  "content": "def loads(s: str | bytes, **kwargs: t.Any) -> t.Any:\n    if current_app:\n        return current_app.json.loads(s, **kwargs)\n    return _json.loads(s, **kwargs)"
+ },
+ {
+  "language": "python",
+  "repo": "pallets/flask",
+  "path": "src/flask/logging.py",
+  "url": "https://github.com/pallets/flask/blob/main/src/flask/logging.py#L16-L30",
+  "content": "def wsgi_errors_stream() -> t.TextIO:\n    if request:\n        return request.environ[\"wsgi.errors\"]\n    return sys.stderr"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "client/v3/compare.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/client/v3/compare.go#L152-L157",
+  "content": "func (cmp Cmp) WithRange(end string) Cmp {\n    cmp = cmp.Clone()\n    cmp.ensureCompare()\n    cmp.c.RangeEnd = []byte(end)\n    return cmp\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "server/etcdmain/grpc_proxy.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/server/etcdmain/grpc_proxy.go#L122-L130",
+  "content": "func newGRPCProxyCommand() *cobra.Command {\n    lpc := &cobra.Command{\n        Use:   \"grpc-proxy <subcommand>\",\n        Short: \"grpc-proxy related command\",\n    }\n    lpc.AddCommand(newGRPCProxyStartCommand())\n    return lpc\n}"
+ },
+ {
+  "language": "c",
+  "repo": "ggerganov/llama.cpp",
+  "path": "ggml/src/ggml-hexagon/htp/hmx-queue.c",
+  "url": "https://github.com/ggerganov/llama.cpp/blob/master/ggml/src/ggml-hexagon/htp/hmx-queue.c#L25-L31",
+  "content": "static inline void hmx_unlock(hmx_queue_t q)\n{\n    if (q->hmx_locked) {\n        HAP_compute_res_hmx_unlock(q->hap_rctx);\n        q->hmx_locked = false;\n    }\n}"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "server/storage/mvcc/watcher.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/server/storage/mvcc/watcher.go#L196-L204",
+  "content": "func (ws *watchStream) RequestProgress(id WatchID) {\n    ws.mu.Lock()\n    w, ok := ws.watchers[id]\n    ws.mu.Unlock()\n    if !ok {\n        return\n    }\n    ws.watchable.progress(w)\n}"
+ },
+ {
+  "language": "rust",
+  "repo": "rust-lang/cargo",
+  "path": "crates/build-rs/src/input.rs",
+  "url": "https://github.com/rust-lang/cargo/blob/master/crates/build-rs/src/input.rs#L88-L96",
+  "content": "pub fn cargo_manifest_path() -> PathBuf {\n    ENV.get(\"CARGO_MANIFEST_PATH\")\n        .map(to_path)\n        .unwrap_or_else(|| {\n            let mut path = cargo_manifest_dir();\n            path.push(\"Cargo.toml\");\n            path\n        })\n}"
+ },
+ {
+  "language": "python",
+  "repo": "tiangolo/fastapi",
+  "path": "scripts/translate.py",
+  "url": "https://github.com/tiangolo/fastapi/blob/master/scripts/translate.py#L336-L343",
+  "content": "def remove_all_removable() -> None:\n    all_removable = list_all_removable()\n    for removable_path in all_removable:\n        removable_path.unlink()\n        print(f\"Removed: {removable_path}\")\n    print(\"Done removing all removable paths\")"
+ },
+ {
+  "language": "go",
+  "repo": "etcd-io/etcd",
+  "path": "cache/cache.go",
+  "url": "https://github.com/etcd-io/etcd/blob/main/cache/cache.go#L331-L337",
+  "content": "func (c *Cache) getWatch() error {\n    getResp, err := c.get(c.internalCtx)\n    if err != nil {\n        return err\n    }\n    return c.watch(getResp.Header.Revision + 1)\n}"
+ }
+]

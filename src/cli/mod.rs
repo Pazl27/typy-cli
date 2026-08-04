@@ -1,14 +1,17 @@
 mod parser;
 
-use anyhow::{Context, Result};
+use anyhow::{bail, Result};
 use clap::Parser;
 use parser::Cli;
 
 use crate::app;
-use crate::config;
-use crate::mode::Mode;
-use crate::scores::progress::display;
-use crate::theme;
+use crate::content::code;
+use crate::persistence::config;
+use crate::persistence::config::constants::defaults;
+use crate::domain::{CursorStyle, GameMode};
+use crate::view::progress as display;
+use crate::view::theme;
+use crate::content::words;
 
 pub fn run() -> Result<()> {
     let cli = Cli::parse();
@@ -24,8 +27,6 @@ pub fn run() -> Result<()> {
         return Ok(());
     }
 
-    let language = config::language::Language::new().lang;
-
     let theme_name = config::toml_parser::get_config()
         .lock()
         .ok()
@@ -37,29 +38,106 @@ pub fn run() -> Result<()> {
         .lock()
         .ok()
         .and_then(|c| c.get_cursor())
-        .unwrap_or_else(|| "block".to_string());
+        .unwrap_or_else(|| CursorStyle::Block.token().to_string());
 
-    let config_time = config::toml_parser::get_config()
+    let config_content = config::toml_parser::get_config()
         .lock()
         .ok()
-        .and_then(|c| c.get_game())
-        .and_then(|g| g.time);
-    let time = cli.time.or(config_time).unwrap_or(30);
+        .and_then(|c| c.get_content())
+        .unwrap_or_default();
 
-    let mode_tokens: Vec<String> = if !cli.mode.is_empty() {
-        cli.mode.clone()
-    } else {
+    let direct = cli.mode.is_some()
+        || cli.time.is_some()
+        || !cli.modifiers.is_empty()
+        || cli.language.is_some();
+
+    let code_mode = match cli.mode {
+        Some(GameMode::Text) => false,
+        Some(GameMode::Code) => true,
+        None => !direct && GameMode::is_code_content(&config_content),
+    };
+
+    if code_mode && !cli.modifiers.is_empty() {
+        bail!("`-x/--modifiers` only applies to text mode, not code.");
+    }
+
+    let (word_language, code_language) = resolve_languages(&cli, code_mode)?;
+
+    let mode_tokens: Vec<String> = if cli.modifiers.is_empty() {
         config::mode_settings::ModeSettings::new()
             .default_modes
             .iter()
             .map(|m| m.token().to_string())
             .collect()
+    } else {
+        cli.modifiers
+            .iter()
+            .map(|m| m.token().to_string())
+            .collect()
     };
 
-    Mode::from_str(mode_tokens.iter().map(|s| s.as_str()).collect())
-        .context("Failed to parse mode")?;
+    let time = cli
+        .time
+        .or_else(|| {
+            config::toml_parser::get_config()
+                .lock()
+                .ok()
+                .and_then(|c| c.get_game())
+                .and_then(|g| g.time)
+        })
+        .unwrap_or(defaults::TIME);
 
-    let direct = cli.time.is_some() || !cli.mode.is_empty();
+    app::run(
+        theme,
+        cursor_style,
+        word_language,
+        mode_tokens,
+        time,
+        code_mode,
+        code_language,
+        direct,
+    )
+}
 
-    app::run(theme, cursor_style, language, mode_tokens, time, direct)
+fn resolve_languages(cli: &Cli, code_mode: bool) -> Result<(String, String)> {
+    let config_word = config::language::Language::new().lang;
+    let config_code = config::toml_parser::get_config()
+        .lock()
+        .ok()
+        .and_then(|c| c.get_code_language())
+        .unwrap_or_else(|| defaults::CODE_LANGUAGE.to_string());
+
+    if code_mode {
+        let code_language = match &cli.language {
+            Some(lang) => {
+                let mut valid = code::available_languages();
+                valid.push(defaults::CODE_LANGUAGE.to_string());
+                if !valid.contains(lang) {
+                    bail!(
+                        "Unknown code language '{lang}'. Available: {}.",
+                        valid.join(", ")
+                    );
+                }
+                lang.clone()
+            }
+            None => config_code,
+        };
+        Ok((config_word, code_language))
+    } else {
+        let word_language = match &cli.language {
+            Some(lang) => {
+                let valid = words::available_languages();
+                if !valid.contains(lang) {
+                    bail!(
+                        "Unknown language '{lang}'. Available: {}. \
+                         Add your own by placing `<name>.txt` in ~/.local/share/typy/.",
+                        valid.join(", ")
+                    );
+                }
+                lang.clone()
+            }
+            None => config_word,
+        };
+        Ok((word_language, config_code))
+    }
 }
